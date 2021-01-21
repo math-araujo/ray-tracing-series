@@ -5,6 +5,7 @@
 #include <iostream>
 
 Color ray_color(const Ray& ray);
+bool hit_sphere(const Point3& center, double radius, const Ray& ray);
 
 int main()
 {
@@ -48,6 +49,13 @@ int main()
 
 Color ray_color(const Ray& ray)
 {
+    const Point3 sphere_center{0, 0, -1};
+    const double radius = 0.5;
+    if (hit_sphere(sphere_center, radius, ray))
+    {
+        return Color{1, 0, 0}; // Red
+    }
+    
     Vector3 unit_direction = unit_vector(ray.direction());
     
     // unit.direction.y() ranges from -1.0 to 1.0, so lerp_parameter ranges from 0.0 to 1.0
@@ -57,4 +65,21 @@ Color ray_color(const Ray& ray)
     Color light_blue{0.5, 0.7, 1.0};
     
     return (1 - lerp_parameter) * white + lerp_parameter * light_blue;
+}
+
+/*
+    Ray-Sphere Intersection:
+        t^2 * dot(b, b) + 2 * t * dot(b, A - C) + dot(A - C, A - C) - radius^2 = 0
+        where b is ray.direction(), A is ray.origin(), C is the center of the sphere
+*/
+bool hit_sphere(const Point3& center, double radius, const Ray& ray)
+{
+    Vector3 ray_origin_to_center = ray.origin() - center; // A - C in the equation
+    auto quadratic_coefficient = dot(ray.direction(), ray.direction());
+    auto linear_coefficient = 2 * dot(ray.direction(), ray_origin_to_center);
+    auto constant_coefficient = dot(ray_origin_to_center, ray_origin_to_center) - radius * radius;
+
+    auto discriminant = linear_coefficient * linear_coefficient - 4 * quadratic_coefficient * constant_coefficient;
+
+    return discriminant > 0;
 }
