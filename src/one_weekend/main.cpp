@@ -1,13 +1,27 @@
 #include "color.hpp"
+#include "ray.hpp"
 #include "vector3.hpp"
 
 #include <iostream>
 
+Color ray_color(const Ray& ray);
+
 int main()
 {
     // Image settings
-    constexpr int image_width = 256;
-    constexpr int image_height = 256;
+    constexpr double aspect_ratio = 16.0 / 9.0;
+    constexpr int image_width = 400;
+    constexpr int image_height = static_cast<int>(image_width / aspect_ratio); // 225
+
+    // Camera
+    double viewport_height = 2.0;
+    double viewport_width = aspect_ratio * viewport_height; // 3.555...
+    double focal_length = 1.0; // Distance from the eyepoint to the projection plane
+
+    Point3 origin{0, 0, 0};
+    Vector3 horizontal{viewport_width, 0, 0};
+    Vector3 vertical{0, viewport_height, 0};
+    auto lower_left_corner = origin - horizontal / 2 - vertical / 2 - Vector3{0, 0, focal_length};
 
     // Render
     std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
@@ -19,13 +33,28 @@ int main()
 
         for (int column = 0; column < image_width; ++column)
         {
-            auto red = double(column) / (image_width - 1);
-            auto green = double(row) / (image_height - 1);
-            auto blue = 0.25;
-
-            write_color(std::cout, Color{red, green, blue});
+            auto u = double(column) / (image_width - 1);
+            auto v = double(row) / (image_height - 1);
+            
+            Ray ray{origin, lower_left_corner + u * horizontal + v * vertical - origin};
+            Color pixel_color = ray_color(ray);
+            
+            write_color(std::cout, pixel_color);
         }
     }
     
     std::cerr << "\nDone.\n";
+}
+
+Color ray_color(const Ray& ray)
+{
+    Vector3 unit_direction = unit_vector(ray.direction());
+    
+    // unit.direction.y() ranges from -1.0 to 1.0, so lerp_parameter ranges from 0.0 to 1.0
+    auto lerp_parameter = 0.5 * (unit_direction.y() + 1.0);
+
+    Color white{1.0, 1.0, 1.0};
+    Color light_blue{0.5, 0.7, 1.0};
+    
+    return (1 - lerp_parameter) * white + lerp_parameter * light_blue;
 }
