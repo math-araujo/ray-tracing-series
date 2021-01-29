@@ -75,20 +75,22 @@ Color ray_color(const Ray& ray)
     Ray-Sphere Intersection:
         t^2 * dot(b, b) + 2 * t * dot(b, A - C) + dot(A - C, A - C) - radius^2 = 0
         where b is ray.direction(), A is ray.origin(), C is the center of the sphere
+
+        Note that dot(b, b) == ||b||^2
 */
 double hit_sphere(const Point3& center, double radius, const Ray& ray)
 {
     Vector3 ray_origin_to_center = ray.origin() - center; // A - C in the equation
-    auto quadratic_coefficient = dot(ray.direction(), ray.direction());
-    auto linear_coefficient = 2 * dot(ray.direction(), ray_origin_to_center);
+    auto quadratic_coefficient = ray.direction().length_squared();
+    auto half_linear_coefficient = dot(ray.direction(), ray_origin_to_center);
     auto constant_coefficient = dot(ray_origin_to_center, ray_origin_to_center) - radius * radius;
 
-    auto discriminant = linear_coefficient * linear_coefficient - 4 * quadratic_coefficient * constant_coefficient;
+    auto discriminant = half_linear_coefficient * half_linear_coefficient - quadratic_coefficient * constant_coefficient;
 
     if (discriminant < 0.0)
     {
         return -1.0;
     }
 
-    return (-linear_coefficient - std::sqrt(discriminant)) / (2.0 * quadratic_coefficient);
+    return (-half_linear_coefficient - std::sqrt(discriminant)) / quadratic_coefficient;
 }
