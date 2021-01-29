@@ -5,7 +5,7 @@
 #include <iostream>
 
 Color ray_color(const Ray& ray);
-bool hit_sphere(const Point3& center, double radius, const Ray& ray);
+double hit_sphere(const Point3& center, double radius, const Ray& ray);
 
 int main()
 {
@@ -51,9 +51,13 @@ Color ray_color(const Ray& ray)
 {
     const Point3 sphere_center{0, 0, -1};
     const double radius = 0.5;
-    if (hit_sphere(sphere_center, radius, ray))
+    
+    // Root of the ray-sphere intersection equation, if any
+    auto intersection_parameter = hit_sphere(sphere_center, radius, ray);
+    if (intersection_parameter > 0.0)
     {
-        return Color{1, 0, 0}; // Red
+        Vector3 normal = unit_vector(ray.at(intersection_parameter) - sphere_center);
+        return 0.5 * Color{normal.x() + 1, normal.y() + 1, normal.z() + 1};
     }
     
     Vector3 unit_direction = unit_vector(ray.direction());
@@ -72,7 +76,7 @@ Color ray_color(const Ray& ray)
         t^2 * dot(b, b) + 2 * t * dot(b, A - C) + dot(A - C, A - C) - radius^2 = 0
         where b is ray.direction(), A is ray.origin(), C is the center of the sphere
 */
-bool hit_sphere(const Point3& center, double radius, const Ray& ray)
+double hit_sphere(const Point3& center, double radius, const Ray& ray)
 {
     Vector3 ray_origin_to_center = ray.origin() - center; // A - C in the equation
     auto quadratic_coefficient = dot(ray.direction(), ray.direction());
@@ -81,5 +85,10 @@ bool hit_sphere(const Point3& center, double radius, const Ray& ray)
 
     auto discriminant = linear_coefficient * linear_coefficient - 4 * quadratic_coefficient * constant_coefficient;
 
-    return discriminant > 0;
+    if (discriminant < 0.0)
+    {
+        return -1.0;
+    }
+
+    return (-linear_coefficient - std::sqrt(discriminant)) / (2.0 * quadratic_coefficient);
 }
