@@ -1,11 +1,13 @@
 #include "color.hpp"
+#include "hittable_list.hpp"
 #include "ray.hpp"
+#include "sphere.hpp"
+#include "util.hpp"
 #include "vector3.hpp"
 
 #include <iostream>
 
-Color ray_color(const Ray& ray);
-double hit_sphere(const Point3& center, double radius, const Ray& ray);
+Color ray_color(const Ray& ray, const Hittable& world);
 
 int main()
 {
@@ -13,6 +15,11 @@ int main()
     constexpr double aspect_ratio = 16.0 / 9.0;
     constexpr int image_width = 400;
     constexpr int image_height = static_cast<int>(image_width / aspect_ratio); // 225
+
+    // World
+    HittableList world;
+    world.add(std::make_shared<Sphere>(Point3{0, 0, -1}, 0.5)); // Main sphere
+    world.add(std::make_shared<Sphere>(Point3{0, -100.5, -1}, 100)); // Background sphere
 
     // Camera
     double viewport_height = 2.0;
@@ -38,7 +45,7 @@ int main()
             auto v = double(row) / (image_height - 1);
             
             Ray ray{origin, lower_left_corner + u * horizontal + v * vertical - origin};
-            Color pixel_color = ray_color(ray);
+            Color pixel_color = ray_color(ray, world);
             
             write_color(std::cout, pixel_color);
         }
@@ -47,9 +54,27 @@ int main()
     std::cerr << "\nDone.\n";
 }
 
-Color ray_color(const Ray& ray)
+Color ray_color(const Ray& ray, const Hittable& world)
 {
-    const Point3 sphere_center{0, 0, -1};
+    HitRecord record;
+
+    if (world.hit(ray, 0, infinity, record))
+    {
+        // record.normal coordinates are between -1 and 1, so this returns RGB between 0 and 1
+        return 0.5 * (record.normal + Color{1, 1, 1});
+    }
+
+    Vector3 unit_direction = unit_vector(ray.direction());
+    
+    // unit.direction.y() ranges from -1.0 to 1.0, so lerp_parameter ranges from 0.0 to 1.0
+    auto lerp_parameter = 0.5 * (unit_direction.y() + 1.0);
+
+    Color white{1.0, 1.0, 1.0};
+    Color light_blue{0.5, 0.7, 1.0};
+    
+    return (1 - lerp_parameter) * white + lerp_parameter * light_blue;
+
+    /*const Point3 sphere_center{0, 0, -1};
     const double radius = 0.5;
     
     // Root of the ray-sphere intersection equation, if any
@@ -68,29 +93,5 @@ Color ray_color(const Ray& ray)
     Color white{1.0, 1.0, 1.0};
     Color light_blue{0.5, 0.7, 1.0};
     
-    return (1 - lerp_parameter) * white + lerp_parameter * light_blue;
-}
-
-/*
-    Ray-Sphere Intersection:
-        t^2 * dot(b, b) + 2 * t * dot(b, A - C) + dot(A - C, A - C) - radius^2 = 0
-        where b is ray.direction(), A is ray.origin(), C is the center of the sphere
-
-        Note that dot(b, b) == ||b||^2
-*/
-double hit_sphere(const Point3& center, double radius, const Ray& ray)
-{
-    Vector3 center_to_origin = ray.origin() - center; // A - C in the equation
-    auto quadratic_coefficient = ray.direction().length_squared();
-    auto half_linear_coefficient = dot(ray.direction(), center_to_origin);
-    auto constant_coefficient = center_to_origin.length_squared() - radius * radius;
-
-    auto discriminant = half_linear_coefficient * half_linear_coefficient - quadratic_coefficient * constant_coefficient;
-
-    if (discriminant < 0.0)
-    {
-        return -1.0;
-    }
-
-    return (-half_linear_coefficient - std::sqrt(discriminant)) / quadratic_coefficient;
+    return (1 - lerp_parameter) * white + lerp_parameter * light_blue;*/
 }
