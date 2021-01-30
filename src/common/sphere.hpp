@@ -55,7 +55,8 @@ bool Sphere::hit(const Ray& ray, double min_parameter, double max_parameter, Hit
 
     record.parameter = root;
     record.point = ray.at(root);
-    record.normal = (record.point - center) / radius; // Unit length normal
+    Vector3 outward_normal = (record.point - center) / radius; // Unit length normal
+    record.set_face_normal(ray, outward_normal);
 
     return true;
 }
