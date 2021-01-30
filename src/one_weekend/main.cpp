@@ -80,10 +80,10 @@ Color ray_color(const Ray& ray)
 */
 double hit_sphere(const Point3& center, double radius, const Ray& ray)
 {
-    Vector3 ray_origin_to_center = ray.origin() - center; // A - C in the equation
+    Vector3 center_to_origin = ray.origin() - center; // A - C in the equation
     auto quadratic_coefficient = ray.direction().length_squared();
-    auto half_linear_coefficient = dot(ray.direction(), ray_origin_to_center);
-    auto constant_coefficient = dot(ray_origin_to_center, ray_origin_to_center) - radius * radius;
+    auto half_linear_coefficient = dot(ray.direction(), center_to_origin);
+    auto constant_coefficient = center_to_origin.length_squared() - radius * radius;
 
     auto discriminant = half_linear_coefficient * half_linear_coefficient - quadratic_coefficient * constant_coefficient;
 
