@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-Color ray_color(const Ray& ray, const Hittable& world);
+Color ray_color(const Ray& ray, const Hittable& world, int depth);
 
 int main()
 {
@@ -17,6 +17,7 @@ int main()
     constexpr int image_width = 400;
     constexpr int image_height = static_cast<int>(image_width / aspect_ratio); // 225
     constexpr int samples_per_pixel = 100;
+    constexpr int max_depth = 50;
 
     // World
     HittableList world;
@@ -43,7 +44,7 @@ int main()
                 auto v = (row + random_double()) / (image_height - 1);
 
                 Ray ray = camera.get_ray(u, v);
-                pixel_color += ray_color(ray, world);
+                pixel_color += ray_color(ray, world, max_depth);
             }
 
             write_color(std::cout, pixel_color, samples_per_pixel);
@@ -53,14 +54,25 @@ int main()
     std::cerr << "\nDone.\n";
 }
 
-Color ray_color(const Ray& ray, const Hittable& world)
+Color ray_color(const Ray& ray, const Hittable& world, int depth)
 {
+    if (depth == 0)
+    {
+        return Color{0.0, 0.0, 0.0};
+    }
+
     HitRecord record;
 
     if (world.hit(ray, 0, infinity, record))
     {
-        // record.normal coordinates are between -1 and 1, so this returns RGB between 0 and 1
-        return 0.5 * (record.normal + Color{1, 1, 1});
+        // Random point inside unit sphere tangent to the surface at the hit point
+        Point3 target = record.point + record.normal + random_in_unit_sphere();
+        
+        /*
+        Generate ray from the hit point to the random target point.
+        Recursively computes the color of the pixel from the random ray reflection.
+        */
+        return 0.5 * ray_color(Ray{record.point, target - record.point}, world, depth - 1);
     }
 
     Vector3 unit_direction = unit_vector(ray.direction());

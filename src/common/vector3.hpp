@@ -1,6 +1,8 @@
 #ifndef VECTOR3_HPP
 #define VECTOR3_HPP
 
+#include "util.hpp"
+
 #include <cmath>
 #include <iostream>
 
@@ -73,6 +75,16 @@ public:
     {
         return coord[0] * coord[0] + coord[1] * coord[1] + coord[2] * coord[2];
     }
+
+    inline static Vector3 random()
+    {
+        return Vector3{random_double(), random_double(), random_double()};
+    }
+
+    inline static Vector3 random(double min, double max)
+    {
+        return Vector3{random_double(min, max), random_double(min, max), random_double(min, max)};
+    }
 };
 
 using Point3 = Vector3;
@@ -133,6 +145,23 @@ inline Vector3 cross(const Vector3& u, const Vector3& v)
 inline Vector3 unit_vector(const Vector3& vec)
 {
     return vec / vec.length();
+}
+
+inline Vector3 random_in_unit_sphere()
+{
+    Vector3 random_vec;
+
+    while (true)
+    {
+        random_vec = Vector3::random(-1.0, 1.0);
+
+        if (random_vec.length_squared() < 1.0)
+        {
+            break;
+        }
+    }
+
+    return random_vec;
 }
 
 #endif // VECTOR3_HPP
