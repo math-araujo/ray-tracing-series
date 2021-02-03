@@ -63,7 +63,7 @@ Color ray_color(const Ray& ray, const Hittable& world, int depth)
 
     HitRecord record;
 
-    if (world.hit(ray, 0, infinity, record))
+    if (world.hit(ray, 0.001, infinity, record))
     {
         // Random point inside unit sphere tangent to the surface at the hit point
         Point3 target = record.point + record.normal + random_in_unit_sphere();
