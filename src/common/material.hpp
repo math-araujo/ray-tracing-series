@@ -65,6 +65,9 @@ public:
     Dielectric(double ir): index_of_refraction{ir} {}
 
     virtual bool scatter(const Ray& incoming_ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const override;
+private:    
+    // Schlick's approximation for reflectance on dielectrics
+    static double reflectance(double cosine, double refraction_ratio);
 };
 
 bool Dielectric::scatter(const Ray& incoming_ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const
@@ -85,7 +88,7 @@ bool Dielectric::scatter(const Ray& incoming_ray, const HitRecord& record, Color
     bool cannot_refract = refraction_ratio * sin_theta > 1.0; // total reflection
     Vector3 direction;
     
-    if (cannot_refract)
+    if (cannot_refract || reflectance(cos_theta, refraction_ratio) > random_double())
     {
         direction = reflect(unit_direction, record.normal);
     }
@@ -96,6 +99,13 @@ bool Dielectric::scatter(const Ray& incoming_ray, const HitRecord& record, Color
 
     scattered_ray = Ray{record.point, direction};
     return true;
+}
+
+double Dielectric::reflectance(double cosine, double refraction_ratio)
+{
+    auto r0 = (1 - refraction_ratio) / (1 + refraction_ratio);
+    r0 = r0 * r0;
+    return r0 + (1 - r0) * std::pow((1 - cosine), 5);
 }
 
 #endif // MATERIAL_HPP

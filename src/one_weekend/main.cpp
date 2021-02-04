@@ -25,14 +25,13 @@ int main()
 
     auto material_ground = std::make_shared<Lambertian>(Color{0.8, 0.8, 0.0});
     auto material_center = std::make_shared<Lambertian>(Color{0.1, 0.2, 0.5});
-    /*auto material_left = std::make_shared<Metal>(Color{0.8, 0.8, 0.8}, 0.3);
-    auto material_center = std::make_shared<Dielectric>(1.5);*/
     auto material_left = std::make_shared<Dielectric>(1.5);
     auto material_right = std::make_shared<Metal>(Color{0.8, 0.6, 0.2}, 0.0);
 
     world.add(std::make_shared<Sphere>(Point3{0.0, -100.5, -1.0}, 100.0, material_ground));
     world.add(std::make_shared<Sphere>(Point3{0.0, 0.0, -1.0}, 0.5, material_center));
     world.add(std::make_shared<Sphere>(Point3{-1.0, 0.0, -1.0}, 0.5, material_left));
+    world.add(std::make_shared<Sphere>(Point3{-1.0, 0.0, -1.0}, -0.4, material_left)); // Negative radius for hollow glass trick
     world.add(std::make_shared<Sphere>(Point3{1.0, 0.0, -1.0}, 0.5, material_right));
 
     // Camera
@@ -76,16 +75,6 @@ Color ray_color(const Ray& ray, const Hittable& world, int depth)
 
     if (world.hit(ray, 0.001, infinity, record))
     {
-        // Random point inside unit sphere tangent to the surface at the hit point
-        // Point3 target = record.point + record.normal + random_in_unit_sphere();
-
-        /*
-        True Lambertian reflection: random point on the unit sphere tangent to the
-        surface at the hit point. Shadows are less visible and the spheres are lighter
-        compared to the approach above.
-        */
-        //Point3 target = record.point + record.normal + random_unit_vector();
-
         Ray scattered_ray;
         Color attenuation;
         if (record.material->scatter(ray, record, attenuation, scattered_ray))
