@@ -180,4 +180,26 @@ Vector3 reflect(const Vector3& v, const Vector3& unit_normal)
     return v - 2 * dot(v, unit_normal) * unit_normal;
 }
 
+/*
+Note:
+refractive_indices_ratio is the ratio between the incident index and the refracted index
+
+Supposing that R is the incident ray and N is the normal vector at the incident
+point (and also supposing that both R and N are unit vectors), the refracted ray
+can be found by the following formulas:
+R_perpendicular = ni/nr * (R + cos(theta_incident) * N)
+R_parallel = -N * sqrt(1 - |R_perpendicular|^2)
+
+See "Reflections and Refractions in Ray Tracing" by Bram de Greve for more
+details and proof.
+Tip: to make the proof more explicit, use projections of R on N to find R_perpendicular.
+*/
+Vector3 refract(const Vector3& incident_ray, const Vector3& normal, double refractive_indices_ratio)
+{
+    const auto cos_theta = std::fmin(dot(-incident_ray, normal), 1.0);
+    Vector3 refracted_perpendicular = refractive_indices_ratio * (incident_ray + cos_theta * normal);
+    Vector3 refracted_parallel = -std::sqrt(std::fabs(1.0 - refracted_perpendicular.length_squared())) * normal;
+    return refracted_perpendicular + refracted_parallel;
+}
+
 #endif // VECTOR3_HPP
