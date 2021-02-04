@@ -76,6 +76,12 @@ public:
         return coord[0] * coord[0] + coord[1] * coord[1] + coord[2] * coord[2];
     }
 
+    bool near_zero() const
+    {
+        const auto epsilon = 1e-8;
+        return std::fabs(coord[0] < epsilon) && std::fabs(coord[1] < epsilon) && std::fabs(coord[2] < epsilon);
+    }
+
     inline static Vector3 random()
     {
         return Vector3{random_double(), random_double(), random_double()};
@@ -167,6 +173,11 @@ inline Vector3 random_in_unit_sphere()
 Vector3 random_unit_vector()
 {
     return unit_vector(random_in_unit_sphere());
+}
+
+Vector3 reflect(const Vector3& v, const Vector3& unit_normal)
+{
+    return v - 2 * dot(v, unit_normal) * unit_normal;
 }
 
 #endif // VECTOR3_HPP

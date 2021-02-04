@@ -3,17 +3,22 @@
 
 #include "ray.hpp"
 
+#include <memory>
+
+class Material;
+
 struct HitRecord
 {
     Point3 point;
     Vector3 normal;
+    std::shared_ptr<Material> material;
     double parameter;
     bool front_face; // stores whether the ray is outside the sphere or not
 
     inline void set_face_normal(const Ray& ray, const Vector3& outward_normal)
     {
         front_face = dot(ray.direction(), outward_normal) < 0.0;
-        normal = front_face ? outward_normal : outward_normal;
+        normal = front_face ? outward_normal : -outward_normal;
     }
 };
 

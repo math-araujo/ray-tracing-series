@@ -1,6 +1,7 @@
 #include "camera.hpp"
 #include "color.hpp"
 #include "hittable_list.hpp"
+#include "material.hpp"
 #include "ray.hpp"
 #include "sphere.hpp"
 #include "util.hpp"
@@ -21,8 +22,16 @@ int main()
 
     // World
     HittableList world;
-    world.add(std::make_shared<Sphere>(Point3{0, 0, -1}, 0.5)); // Main sphere
-    world.add(std::make_shared<Sphere>(Point3{0, -100.5, -1}, 100)); // Background sphere
+
+    auto material_ground = std::make_shared<Lambertian>(Color{0.8, 0.8, 0.0});
+    auto material_center = std::make_shared<Lambertian>(Color{0.7, 0.3, 0.3});
+    auto material_left = std::make_shared<Metal>(Color{0.8, 0.8, 0.8});
+    auto material_right = std::make_shared<Metal>(Color{0.8, 0.6, 0.2});
+
+    world.add(std::make_shared<Sphere>(Point3{0.0, -100.5, -1.0}, 100.0, material_ground));
+    world.add(std::make_shared<Sphere>(Point3{0.0, 0.0, -1.0}, 0.5, material_center));
+    world.add(std::make_shared<Sphere>(Point3{-1.0, 0.0, -1.0}, 0.5, material_left));
+    world.add(std::make_shared<Sphere>(Point3{1.0, 0.0, -1.0}, 0.5, material_right));
 
     // Camera
     Camera camera;
@@ -73,13 +82,16 @@ Color ray_color(const Ray& ray, const Hittable& world, int depth)
         surface at the hit point. Shadows are less visible and the spheres are lighter
         compared to the approach above.
         */
-        Point3 target = record.point + record.normal + random_unit_vector();
+        //Point3 target = record.point + record.normal + random_unit_vector();
 
-        /*
-        Generate ray from the hit point to the random target point.
-        Recursively computes the color of the pixel from the random ray reflection.
-        */
-        return 0.5 * ray_color(Ray{record.point, target - record.point}, world, depth - 1);
+        Ray scattered_ray;
+        Color attenuation;
+        if (record.material->scatter(ray, record, attenuation, scattered_ray))
+        {
+            return attenuation * ray_color(scattered_ray, world, depth - 1);
+        }
+
+        return Color{0, 0, 0};
     }
 
     Vector3 unit_direction = unit_vector(ray.direction());

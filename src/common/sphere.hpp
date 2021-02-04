@@ -4,14 +4,17 @@
 #include "hittable.hpp"
 #include "ray.hpp"
 
+#include <memory>
+
 class Sphere: public Hittable
 {
 public:
     Point3 center;
     double radius;
+    std::shared_ptr<Material> material;
 
     Sphere() {}
-    Sphere(Point3 cen, double r): center{cen}, radius{r} {}
+    Sphere(Point3 cen, double r, std::shared_ptr<Material> m): center{cen}, radius{r}, material{m} {}
 
     virtual bool hit(const Ray& ray, double min_parameter, double max_parameter, HitRecord& record) const override;
 };
@@ -57,7 +60,8 @@ bool Sphere::hit(const Ray& ray, double min_parameter, double max_parameter, Hit
     record.point = ray.at(root);
     Vector3 outward_normal = (record.point - center) / radius; // Unit length normal
     record.set_face_normal(ray, outward_normal);
-
+    record.material = material;
+    
     return true;
 }
 
