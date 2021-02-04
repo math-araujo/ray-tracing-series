@@ -69,7 +69,7 @@ public:
 
 bool Dielectric::scatter(const Ray& incoming_ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const
 {
-    attenuation = Color{1.0, 1.0, 1.0};
+    attenuation = Color{1.0, 1.0, 1.0}; // No absorption
     
     /*
     If record.front_face is true, the ray hitted the external surface of the sphere; supposing the
@@ -79,9 +79,22 @@ bool Dielectric::scatter(const Ray& incoming_ray, const HitRecord& record, Color
     double refraction_ratio = record.front_face ? (1.0 / index_of_refraction) : index_of_refraction;
     
     Vector3 unit_direction = unit_vector(incoming_ray.direction());
-    Vector3 refracted_direction = refract(unit_direction, record.normal, refraction_ratio);
+    double cos_theta = std::fmin(dot(-unit_direction, record.normal), 1.0);
+    double sin_theta = std::sqrt(1.0 - cos_theta * cos_theta);
+    
+    bool cannot_refract = refraction_ratio * sin_theta > 1.0; // total reflection
+    Vector3 direction;
+    
+    if (cannot_refract)
+    {
+        direction = reflect(unit_direction, record.normal);
+    }
+    else
+    {
+        direction = refract(unit_direction, record.normal, refraction_ratio);
+    }
 
-    scattered_ray = Ray{record.point, refracted_direction};
+    scattered_ray = Ray{record.point, direction};
     return true;
 }
 
