@@ -42,8 +42,9 @@ class Metal: public Material
 {
 public:
     Color albedo;
+    double fuzz; 
 
-    Metal(const Color& color): albedo{color} {}
+    Metal(const Color& color, double fuzz_parameter): albedo{color}, fuzz{fuzz_parameter < 1 ? fuzz_parameter : 1} {}
 
     virtual bool scatter(const Ray& incoming_ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const override;
 };
@@ -51,7 +52,7 @@ public:
 bool Metal::scatter(const Ray& incoming_ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const
 {
     Vector3 reflected = reflect(unit_vector(incoming_ray.direction()), record.normal);
-    scattered_ray = Ray{record.point, reflected};
+    scattered_ray = Ray{record.point, reflected + fuzz * random_in_unit_sphere()};
     attenuation = albedo;
 
     return dot(scattered_ray.direction(), record.normal) > 0;
