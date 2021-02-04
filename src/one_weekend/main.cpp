@@ -66,8 +66,15 @@ Color ray_color(const Ray& ray, const Hittable& world, int depth)
     if (world.hit(ray, 0.001, infinity, record))
     {
         // Random point inside unit sphere tangent to the surface at the hit point
-        Point3 target = record.point + record.normal + random_in_unit_sphere();
-        
+        // Point3 target = record.point + record.normal + random_in_unit_sphere();
+
+        /*
+        True Lambertian reflection: random point on the unit sphere tangent to the
+        surface at the hit point. Shadows are less visible and the spheres are lighter
+        compared to the approach above.
+        */
+        Point3 target = record.point + record.normal + random_unit_vector();
+
         /*
         Generate ray from the hit point to the random target point.
         Recursively computes the color of the pixel from the random ray reflection.
