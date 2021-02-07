@@ -31,11 +31,20 @@ int main()
     world.add(std::make_shared<Sphere>(Point3{0.0, -100.5, -1.0}, 100.0, material_ground));
     world.add(std::make_shared<Sphere>(Point3{0.0, 0.0, -1.0}, 0.5, material_center));
     world.add(std::make_shared<Sphere>(Point3{-1.0, 0.0, -1.0}, 0.5, material_left));
-    world.add(std::make_shared<Sphere>(Point3{-1.0, 0.0, -1.0}, -0.4, material_left)); // Negative radius for hollow glass trick
+    world.add(std::make_shared<Sphere>(Point3{-1.0, 0.0, -1.0}, -0.45, material_left)); // Negative radius for hollow glass trick
     world.add(std::make_shared<Sphere>(Point3{1.0, 0.0, -1.0}, 0.5, material_right));
 
+    /*
+    Wide-angle view world settings
+    const auto radius = std::cos(pi / 4);
+    auto material_left = std::make_shared<Lambertian>(Color{0, 0, 1});
+    auto material_right = std::make_shared<Lambertian>(Color{1, 0, 0});
+    world.add(std::make_shared<Sphere>(Point3{-radius, 0, -1}, radius, material_left));
+    world.add(std::make_shared<Sphere>(Point3{radius, 0, -1}, radius, material_right));
+    */
+
     // Camera
-    Camera camera;
+    Camera camera{Point3{-2, 2, 1}, Point3{0, 0, -1}, Vector3{0, 1, 0}, 90.0, aspect_ratio};
 
     // Render
     std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
@@ -81,7 +90,7 @@ Color ray_color(const Ray& ray, const Hittable& world, int depth)
         {
             return attenuation * ray_color(scattered_ray, world, depth - 1);
         }
-
+        
         return Color{0, 0, 0};
     }
 
