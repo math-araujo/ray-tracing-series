@@ -43,8 +43,14 @@ int main()
     world.add(std::make_shared<Sphere>(Point3{radius, 0, -1}, radius, material_right));
     */
 
-    // Camera
-    Camera camera{Point3{-2, 2, 1}, Point3{0, 0, -1}, Vector3{0, 1, 0}, 90.0, aspect_ratio};
+    // Camera; set distance_to_focus to 1.0 and aperture to 0.0 to remove depth of field/defocus blur
+    Point3 look_from{3, 3, 2};
+    Point3 look_at{0, 0, -1};
+    Vector3 view_up{0, 1, 0};
+    auto vertical_fov = 20.0;
+    auto distance_to_focus = (look_from - look_at).length();
+    auto aperture = 2.0;
+    Camera camera{look_from, look_at, view_up, vertical_fov, aspect_ratio, aperture, distance_to_focus};
 
     // Render
     std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";

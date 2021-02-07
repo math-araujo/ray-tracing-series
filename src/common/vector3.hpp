@@ -175,6 +175,23 @@ Vector3 random_unit_vector()
     return unit_vector(random_in_unit_sphere());
 }
 
+Vector3 random_in_unit_disk()
+{
+    Vector3 random_vec;
+
+    while (true)
+    {
+        random_vec = Vector3(random_double(-1, 1), random_double(-1, 1), 0);
+        
+        if (random_vec.length_squared() < 1)
+        {
+            break;
+        }
+    }
+
+    return random_vec;
+}
+
 Vector3 reflect(const Vector3& v, const Vector3& unit_normal)
 {
     return v - 2 * dot(v, unit_normal) * unit_normal;
