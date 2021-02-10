@@ -9,10 +9,10 @@
 
 #include <iostream>
 
-// Simple scene developed along the book using lambertian, metal and dielectrics materials
+// Simple scene developed along the "In One Weekend" book using lambertian, metal and dielectrics materials
 HittableList hollow_glass_scene();
 
-// Final render scene
+// Final render scene of "In One Weekend" book
 HittableList random_scene();
 
 // Recursive ray tracing function to compute color for a pixel
