@@ -2,6 +2,7 @@
 #include "color.hpp"
 #include "hittable_list.hpp"
 #include "material.hpp"
+#include "moving_sphere.hpp"
 #include "ray.hpp"
 #include "scenes.hpp"
 #include "sphere.hpp"
@@ -14,7 +15,7 @@
 HittableList hollow_glass_scene();
 
 // Final render scene of "In One Weekend" book
-HittableList random_scene();
+HittableList random_scene(bool use_motion_blur = false);
 
 // Recursive ray tracing function to compute color for a pixel
 Color ray_color(const Ray& ray, const Hittable& world, int depth);
@@ -22,10 +23,10 @@ Color ray_color(const Ray& ray, const Hittable& world, int depth);
 int main()
 {
     // Image settings
-    constexpr double aspect_ratio = 3.0 / 2.0;
-    constexpr int image_width = 1200;
+    constexpr double aspect_ratio = 16.0 / 9.0;
+    constexpr int image_width = 400;
     constexpr int image_height = static_cast<int>(image_width / aspect_ratio); // 800
-    constexpr int samples_per_pixel = 10;
+    constexpr int samples_per_pixel = 100;
     constexpr int max_depth = 50;
 
     /*
@@ -45,8 +46,10 @@ int main()
     double distance_to_focus{0.0};
     double aperture{0.1};
 
-    auto choosen_scene = Scenes::Random;
+    auto choosen_scene{Scenes::Random};
+    bool use_motion_blur{true};
     HittableList world;
+
     switch (choosen_scene)
     {
     case Scenes::HollowGlass:
@@ -61,14 +64,16 @@ int main()
         look_at = {0, 0, 0};
         aperture = 0.1;
         distance_to_focus = 10.0;
-        world = random_scene();
+        world = random_scene(use_motion_blur);
         break;
     default:
         std::cerr << "Empty scene: unable to render\n";
         return 1;
     }
 
-    Camera camera{look_from, look_at, view_up, vertical_fov, aspect_ratio, aperture, distance_to_focus};
+    double open_shutter_time{0.0};
+    double close_shutter_time{1.0};
+    Camera camera{look_from, look_at, view_up, vertical_fov, aspect_ratio, aperture, distance_to_focus, open_shutter_time, close_shutter_time};
 
     // Render
     std::cout << "P3\n" << image_width << " " << image_height << "\n255\n";
@@ -115,7 +120,7 @@ HittableList hollow_glass_scene()
     return world;
 }
 
-HittableList random_scene()
+HittableList random_scene(bool use_motion_blur)
 {   
     constexpr double diffuse_threshold = 0.8;
     constexpr double metal_threshold = 0.95;
@@ -141,19 +146,29 @@ HittableList random_scene()
                 {
                     auto albedo = Color::random() * Color::random();
                     sphere_material = std::make_shared<Lambertian>(albedo);
+
+                    if (use_motion_blur)
+                    {
+                        auto end_center = center + Vector3{0, random_double(0, 0.5), 0};
+                        world.add(std::make_shared<MovingSphere>(center, end_center, 0.0, 1.0, 0.2, sphere_material));
+                    }
+                    else
+                    {
+                        world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+                    }
                 }
                 else if (choose_material < metal_threshold) // Choose metal material
                 {
                     auto albedo = Color::random(0.5, 1);
                     auto fuzziness = random_double(0, 0.5);
                     sphere_material = std::make_shared<Metal>(albedo, fuzziness);
+                    world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
                 }
                 else // Choose dielectric material
                 {
                     sphere_material = std::make_shared<Dielectric>(1.5);
+                    world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
                 }
-
-                world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
             }
         }
     }

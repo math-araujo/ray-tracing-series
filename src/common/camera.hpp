@@ -9,7 +9,8 @@ class Camera
 {
 public:
     // By default, the Camera has no depth of field/defocus blue
-    Camera(Point3 look_from, Point3 look_at, Vector3 view_up, double vertical_fov, double aspect_ratio, double aperture = 0.0, double focus_distance = 1.0);
+    Camera(Point3 look_from, Point3 look_at, Vector3 view_up, double vertical_fov, double aspect_ratio, 
+        double aperture = 0.0, double focus_distance = 1.0, double time0 = 0.0, double time1 = 0.0);
 
     Ray get_ray(double u, double v) const;
 private:
@@ -20,10 +21,14 @@ private:
     // Basis vectors of the camera frame of reference
     Vector3 u, v, w;
     double lens_radius;
+    // Open/close times of the shutter
+    double open_time;
+    double close_time;
 };
 
-Camera::Camera(Point3 look_from, Point3 look_at, Vector3 view_up, double vertical_fov, double aspect_ratio, double aperture, double focus_distance):
-    origin{look_from}, lens_radius{aperture / 2}
+Camera::Camera(Point3 look_from, Point3 look_at, Vector3 view_up, double vertical_fov, double aspect_ratio, 
+    double aperture, double focus_distance, double time0, double time1):
+    origin{look_from}, lens_radius{aperture / 2}, open_time{time0}, close_time{time1}
 {
     const auto theta = degrees_to_radians(vertical_fov);
     const auto height = std::tan(theta / 2);
@@ -45,7 +50,7 @@ Ray Camera::get_ray(double s, double t) const
     Vector3 random = lens_radius * random_in_unit_disk();
     Vector3 offset = u * random.x() + v * random.y();
 
-    return Ray{origin + offset, lower_left_corner + s * horizontal + t * vertical - origin - offset};
+    return Ray{origin + offset, lower_left_corner + s * horizontal + t * vertical - origin - offset, random_double(open_time, close_time)};
 }
 
 #endif // CAMERA_HPP
