@@ -3,6 +3,7 @@
 #include "hittable_list.hpp"
 #include "material.hpp"
 #include "ray.hpp"
+#include "scenes.hpp"
 #include "sphere.hpp"
 #include "util.hpp"
 #include "vector3.hpp"
@@ -27,10 +28,6 @@ int main()
     constexpr int samples_per_pixel = 10;
     constexpr int max_depth = 50;
 
-    // World
-    //auto world = hollow_glass_scene();
-    auto world = random_scene();
-
     /*
     Wide-angle view world settings
     const auto radius = std::cos(pi / 4);
@@ -40,13 +37,37 @@ int main()
     world.add(std::make_shared<Sphere>(Point3{radius, 0, -1}, radius, material_right));
     */
 
-    // Camera; set distance_to_focus to 1.0 and aperture to 0.0 to remove depth of field/defocus blur
-    Point3 look_from{13, 2, 3};
-    Point3 look_at{0, 0, 0};
+    // Camera settings; set distance_to_focus to 1.0 and aperture to 0.0 to remove depth of field/defocus blur
+    Point3 look_from;
+    Point3 look_at;
     Vector3 view_up{0, 1, 0};
-    auto vertical_fov = 20.0;
-    auto distance_to_focus = 10.0;
-    auto aperture = 0.1;
+    double vertical_fov{20.0};
+    double distance_to_focus{0.0};
+    double aperture{0.1};
+
+    auto choosen_scene = Scenes::Random;
+    HittableList world;
+    switch (choosen_scene)
+    {
+    case Scenes::HollowGlass:
+        look_from = Point3{3, 3, 2};
+        look_at = Point3{0, 0, -1};
+        aperture = 0.1;
+        distance_to_focus = (look_from - look_at).length();
+        world = hollow_glass_scene();
+        break;
+    case Scenes::Random:
+        look_from = Point3{13, 2, 3};
+        look_at = {0, 0, 0};
+        aperture = 0.1;
+        distance_to_focus = 10.0;
+        world = random_scene();
+        break;
+    default:
+        std::cerr << "Empty scene: unable to render\n";
+        return 1;
+    }
+
     Camera camera{look_from, look_at, view_up, vertical_fov, aspect_ratio, aperture, distance_to_focus};
 
     // Render
