@@ -17,7 +17,14 @@ HittableList hollow_glass_scene();
 // Final render scene of "In One Weekend" book
 HittableList random_scene(bool use_motion_blur = false);
 
+// Two spheres with checkered textures
 HittableList two_checkered_spheres();
+
+// Two spheres with perlin textures
+HittableList two_perlin_spheres();
+
+// Similar to random_scene, but replaces solid textures with noise textures using Perlin noise
+HittableList perlin_random_scene();
 
 // Recursive ray tracing function to compute color for a pixel
 Color ray_color(const Ray& ray, const Hittable& world, int depth);
@@ -48,7 +55,7 @@ int main()
     double distance_to_focus{1.0};
     double aperture{0.0};
 
-    auto choosen_scene{Scenes::TwoCheckeredSpheres};
+    auto choosen_scene{Scenes::PerlinTexture};
     bool use_motion_blur{true};
     HittableList world;
 
@@ -73,6 +80,19 @@ int main()
         look_at = {0, 0, 0};
         distance_to_focus = 10.0;
         world = two_checkered_spheres();
+        break;
+    case Scenes::PerlinTexture:
+        look_from = Point3{13, 2, 3};
+        look_at = {0, 0, 0};
+        distance_to_focus = 10.0;
+        world = two_perlin_spheres();
+        break;
+    case Scenes::PerlinTextureRandomSpheres:
+        look_from = Point3{13, 2, 3};
+        look_at = {0, 0, 0};
+        aperture = 0.1;
+        distance_to_focus = 10.0;
+        world = perlin_random_scene();
         break;
     default:
         std::cerr << "Empty scene: unable to render\n";
@@ -130,8 +150,8 @@ HittableList hollow_glass_scene()
 
 HittableList random_scene(bool use_motion_blur)
 {   
-    constexpr double diffuse_threshold = 0.8;
-    constexpr double metal_threshold = 0.95;
+    const double diffuse_threshold = 0.8;
+    const double metal_threshold = 0.95;
 
     HittableList world;
 
@@ -205,6 +225,71 @@ HittableList two_checkered_spheres()
     objects.add(std::make_shared<Sphere>(Point3{0, 10, 0}, 10, std::make_shared<Lambertian>(checker_texture)));
 
     return objects;
+}
+
+HittableList two_perlin_spheres()
+{
+    HittableList objects;
+
+    auto perlin_texture = std::make_shared<NoiseTexture>(4);
+    objects.add(std::make_shared<Sphere>(Point3{0, -1000, 0}, 1000, std::make_shared<Lambertian>(perlin_texture)));
+    objects.add(std::make_shared<Sphere>(Point3{0, 2, 0}, 2, std::make_shared<Lambertian>(perlin_texture)));
+
+    return objects;
+}
+
+HittableList perlin_random_scene()
+{
+    const double diffuse_threshold = 0.8;
+    const double metal_threshold = 0.95;
+
+    HittableList world;
+    
+    auto perlin_texture = std::make_shared<NoiseTexture>(4);
+    world.add(std::make_shared<Sphere>(Point3{0, -1000, 0}, 1000, std::make_shared<Lambertian>(perlin_texture)));
+
+    for (int a = -11; a < 11; ++a)
+    {
+        for (int b = -11; b < 11; ++b)
+        {
+            Point3 center{a + 0.9 * random_double(), 0.2, b + 0.9 * random_double()};
+
+            if ((center - Point3{4, 0.2, 0}).length() > 0.9)
+            {
+                std::shared_ptr<Material> sphere_material;
+
+                auto choose_material = random_double();
+
+                if (choose_material < diffuse_threshold) // Choose diffuse material
+                {
+                    sphere_material = std::make_shared<Lambertian>(perlin_texture);
+                }
+                else if (choose_material < metal_threshold) // Choose metal material
+                {
+                    auto albedo = Color::random(0.5, 1);
+                    auto fuzziness = random_double(0, 0.5);
+                    sphere_material = std::make_shared<Metal>(albedo, fuzziness);
+                }
+                else // Choose dielectric material
+                {
+                    sphere_material = std::make_shared<Dielectric>(1.5);
+                }
+
+                world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+            }
+        }
+    }
+
+    auto dielectric = std::make_shared<Dielectric>(1.5);
+    world.add(std::make_shared<Sphere>(Point3{0, 1, 0}, 1.0, dielectric));
+
+    auto lambertian = std::make_shared<Lambertian>(Color{0.4, 0.2, 0.1});
+    world.add(std::make_shared<Sphere>(Point3{-4, 1, 0}, 1.0, lambertian));
+
+    auto metal = std::make_shared<Metal>(Color{0.7, 0.6, 0.5}, 0.0);
+    world.add(std::make_shared<Sphere>(Point3{4, 1, 0}, 1.0, metal));
+
+    return world;
 }
 
 Color ray_color(const Ray& ray, const Hittable& world, int depth)

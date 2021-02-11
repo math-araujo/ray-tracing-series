@@ -1,6 +1,7 @@
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
 
+#include "perlin.hpp"
 #include "vector3.hpp"
 #include <cmath>
 
@@ -52,6 +53,23 @@ Color CheckerTexture::value(double u, double v, const Point3& point) const
     }
     
     return even->value(u, v, point);
+}
+
+class NoiseTexture: public Texture
+{
+public:
+    Perlin noise;
+    double frequency_scale;
+
+    NoiseTexture() {}
+    explicit NoiseTexture(double scale): frequency_scale{scale} {}
+
+    virtual Color value(double u, double v, const Point3& point) const override;
+};
+
+Color NoiseTexture::value(double u, double v, const Point3& point) const 
+{
+    return Color{1, 1, 1} * 0.5 * (1 + std::sin(frequency_scale * point.z() + 10 * noise.turbulence(point)));
 }
 
 #endif // TEXTURE_HPP
