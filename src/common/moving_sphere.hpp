@@ -1,6 +1,7 @@
 #ifndef MOVING_SPHERE_HPP
 #define MOVING_SPHERE_HPP
 
+#include "aabb.hpp"
 #include "hittable.hpp"
 #include "material.hpp"
 #include "ray.hpp"
@@ -24,6 +25,7 @@ public:
     {}
 
     virtual bool hit(const Ray& ray, double min_parameter, double max_parameter, HitRecord& record) const override;
+    virtual bool bounding_box(double start_time, double end_time, AABB& output_box) const override;
     Point3 center(double time) const;
 };
 
@@ -58,6 +60,17 @@ bool MovingSphere::hit(const Ray& ray, double min_parameter, double max_paramete
     record.set_face_normal(ray, outward_normal);
     record.material = material;
     
+    return true;
+}
+
+bool MovingSphere::bounding_box(double start_time, double end_time, AABB& output_box) const
+{
+    AABB start_box{center(start_time) - Vector3{radius, radius, radius}, 
+                   center(start_time) + Vector3{radius, radius, radius}};
+    AABB end_box{center(end_time) - Vector3{radius, radius, radius},
+                 center(end_time) + Vector3{radius, radius, radius}};
+    
+    output_box = surrounding_box(start_box, end_box);
     return true;
 }
 

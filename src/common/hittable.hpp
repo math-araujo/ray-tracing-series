@@ -1,6 +1,7 @@
 #ifndef HITTABLE_HPP
 #define HITTABLE_HPP
 
+#include "aabb.hpp"
 #include "ray.hpp"
 
 #include <memory>
@@ -26,6 +27,7 @@ class Hittable
 {
 public:
     virtual bool hit(const Ray& ray, double min_parameter, double max_parameter, HitRecord& record) const = 0;
+    virtual bool bounding_box(double start_time, double end_time, AABB& output_box) const = 0;
 };
 
 #endif // HITTABLE_HPP

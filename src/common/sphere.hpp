@@ -17,6 +17,7 @@ public:
     Sphere(Point3 cen, double r, std::shared_ptr<Material> m): center{cen}, radius{r}, material{m} {}
 
     virtual bool hit(const Ray& ray, double min_parameter, double max_parameter, HitRecord& record) const override;
+    virtual bool bounding_box(double start_time, double end_time, AABB& output_box) const override;
 };
 
 /*
@@ -62,6 +63,12 @@ bool Sphere::hit(const Ray& ray, double min_parameter, double max_parameter, Hit
     record.set_face_normal(ray, outward_normal);
     record.material = material;
     
+    return true;
+}
+
+bool Sphere::bounding_box(double start_time, double end_time, AABB& output_box) const 
+{
+    output_box = AABB{center - Vector3{radius, radius, radius}, center + Vector3{radius, radius, radius}};
     return true;
 }
 

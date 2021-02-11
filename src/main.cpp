@@ -8,7 +8,6 @@
 #include "sphere.hpp"
 #include "util.hpp"
 #include "vector3.hpp"
-
 #include <iostream>
 
 // Simple scene developed along the "In One Weekend" book using lambertian, metal and dielectrics materials
