@@ -4,7 +4,9 @@
 #include "color.hpp"
 #include "hittable.hpp"
 #include "ray.hpp"
+#include "texture.hpp"
 #include "util.hpp"
+#include <memory>
 
 class Material
 {
@@ -15,10 +17,11 @@ public:
 class Lambertian: public Material
 {
 public:
-    Color albedo; // Measures how much light is reflected without being absorved
+    std::shared_ptr<Texture> albedo; // Measures how much light is reflected without being absorved
 
-    Lambertian(const Color& color): albedo{color} {}
-    
+    Lambertian(const Color& color): albedo{std::make_shared<SolidColor>(color)} {}
+    Lambertian(std::shared_ptr<Texture> texture): albedo{texture} {}
+
     virtual bool scatter(const Ray& incoming_ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const override;
 };
 
@@ -33,7 +36,7 @@ bool Lambertian::scatter(const Ray& incoming_ray, const HitRecord& record, Color
     }
 
     scattered_ray = Ray{record.point, scatter_direction, incoming_ray.time()};
-    attenuation = albedo;
+    attenuation = albedo->value(record.u, record.v, record.point);
 
     return true;
 }

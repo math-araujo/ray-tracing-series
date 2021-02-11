@@ -14,6 +14,9 @@ struct HitRecord
     Vector3 normal;
     std::shared_ptr<Material> material;
     double parameter;
+    // UV surfaces coordinates for textures
+    double u;
+    double v;
     bool front_face; // stores whether the ray is outside the sphere or not
 
     inline void set_face_normal(const Ray& ray, const Vector3& outward_normal)

@@ -6,6 +6,7 @@
 #include "ray.hpp"
 #include "scenes.hpp"
 #include "sphere.hpp"
+#include "texture.hpp"
 #include "util.hpp"
 #include "vector3.hpp"
 #include <iostream>
@@ -15,6 +16,8 @@ HittableList hollow_glass_scene();
 
 // Final render scene of "In One Weekend" book
 HittableList random_scene(bool use_motion_blur = false);
+
+HittableList two_checkered_spheres();
 
 // Recursive ray tracing function to compute color for a pixel
 Color ray_color(const Ray& ray, const Hittable& world, int depth);
@@ -42,10 +45,10 @@ int main()
     Point3 look_at;
     Vector3 view_up{0, 1, 0};
     double vertical_fov{20.0};
-    double distance_to_focus{0.0};
-    double aperture{0.1};
+    double distance_to_focus{1.0};
+    double aperture{0.0};
 
-    auto choosen_scene{Scenes::Random};
+    auto choosen_scene{Scenes::TwoCheckeredSpheres};
     bool use_motion_blur{true};
     HittableList world;
 
@@ -64,6 +67,12 @@ int main()
         aperture = 0.1;
         distance_to_focus = 10.0;
         world = random_scene(use_motion_blur);
+        break;
+    case Scenes::TwoCheckeredSpheres:
+        look_from = Point3{13, 2, 3};
+        look_at = {0, 0, 0};
+        distance_to_focus = 10.0;
+        world = two_checkered_spheres();
         break;
     default:
         std::cerr << "Empty scene: unable to render\n";
@@ -126,8 +135,10 @@ HittableList random_scene(bool use_motion_blur)
 
     HittableList world;
 
-    auto ground_material = std::make_shared<Lambertian>(Color{0.5, 0.5, 0.5});
-    world.add(std::make_shared<Sphere>(Point3{0, -1000, 0}, 1000, ground_material));
+    /*auto ground_material = std::make_shared<Lambertian>(Color{0.5, 0.5, 0.5});
+    world.add(std::make_shared<Sphere>(Point3{0, -1000, 0}, 1000, ground_material));*/
+    auto checker_texture = std::make_shared<CheckerTexture>(Color{0.2, 0.3, 0.1}, Color{0.9, 0.9, 0.9});
+    world.add(std::make_shared<Sphere>(Point3{0, -1000, 0}, 1000, std::make_shared<Lambertian>(checker_texture)));
 
     for (int a = -11; a < 11; ++a)
     {
@@ -182,6 +193,18 @@ HittableList random_scene(bool use_motion_blur)
     world.add(std::make_shared<Sphere>(Point3{4, 1, 0}, 1.0, metal));
 
     return world;
+}
+
+HittableList two_checkered_spheres()
+{
+    HittableList objects;
+
+    auto checker_texture = std::make_shared<CheckerTexture>(Color{0.2, 0.3, 0.1}, Color{0.9, 0.9, 0.9});
+    
+    objects.add(std::make_shared<Sphere>(Point3{0, -10, 0}, 10, std::make_shared<Lambertian>(checker_texture)));
+    objects.add(std::make_shared<Sphere>(Point3{0, 10, 0}, 10, std::make_shared<Lambertian>(checker_texture)));
+
+    return objects;
 }
 
 Color ray_color(const Ray& ray, const Hittable& world, int depth)

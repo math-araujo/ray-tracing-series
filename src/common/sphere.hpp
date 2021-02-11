@@ -3,7 +3,8 @@
 
 #include "hittable.hpp"
 #include "ray.hpp"
-
+#include "util.hpp"
+#include <cmath>
 #include <memory>
 
 class Sphere: public Hittable
@@ -18,6 +19,8 @@ public:
 
     virtual bool hit(const Ray& ray, double min_parameter, double max_parameter, HitRecord& record) const override;
     virtual bool bounding_box(double start_time, double end_time, AABB& output_box) const override;
+private:
+    static void get_sphere_uv(const Point3& point, double& u, double& v);
 };
 
 /*
@@ -61,6 +64,7 @@ bool Sphere::hit(const Ray& ray, double min_parameter, double max_parameter, Hit
     record.point = ray.at(root);
     Vector3 outward_normal = (record.point - center) / radius; // Unit length normal
     record.set_face_normal(ray, outward_normal);
+    get_sphere_uv(outward_normal, record.u, record.v);
     record.material = material;
     
     return true;
@@ -70,6 +74,35 @@ bool Sphere::bounding_box(double start_time, double end_time, AABB& output_box) 
 {
     output_box = AABB{center - Vector3{radius, radius, radius}, center + Vector3{radius, radius, radius}};
     return true;
+}
+
+/* 
+    Converts a point (x, y, z) on the unit sphere to UV coordinates (u, v)
+
+    The mapping is such that 
+        u = phi / (2 * PI)
+        v = theta / PI
+    where phi is the angle around the Y-axis when it's pointing-up (i.e. longitude)
+    and theta is the angle from -Y to Y (i.e. latitude)
+
+    phi and theta can be found converting the cartesian coordinates (x, y, z) to
+    spherical coordinates:
+        y = - cos(theta)
+        x = - cos(phi) * sin(theta)
+        z =   sin(phi) * sin(theta)
+
+    Args:
+        point: point on the unit sphere
+        u: UV coordinate in range [0; 1], mapped to phi (longitude)
+        v: UV coordinate in range [0; 1], mapped to theta (latitude)
+*/
+void Sphere::get_sphere_uv(const Point3& point, double& u, double& v)
+{
+    auto phi = std::atan2(-point.z(), point.x()) + pi;
+    auto theta = std::acos(-point.y());
+
+    u = phi / (2* pi);
+    v = theta / pi;
 }
 
 #endif // SPHERE_HPP
