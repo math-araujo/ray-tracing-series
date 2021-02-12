@@ -26,6 +26,9 @@ HittableList two_perlin_spheres();
 // Similar to random_scene, but replaces solid textures with noise textures using Perlin noise
 HittableList perlin_random_scene();
 
+// Earth mapped to a sphere
+HittableList earth_sphere();
+
 // Recursive ray tracing function to compute color for a pixel
 Color ray_color(const Ray& ray, const Hittable& world, int depth);
 
@@ -55,7 +58,7 @@ int main()
     double distance_to_focus{1.0};
     double aperture{0.0};
 
-    auto choosen_scene{Scenes::PerlinTexture};
+    auto choosen_scene{Scenes::EarthSphere};
     bool use_motion_blur{true};
     HittableList world;
 
@@ -93,6 +96,11 @@ int main()
         aperture = 0.1;
         distance_to_focus = 10.0;
         world = perlin_random_scene();
+        break;
+    case Scenes::EarthSphere:
+        look_from = Point3{13, 2, 3};
+        look_at = {0, 0, 0};
+        world = earth_sphere();
         break;
     default:
         std::cerr << "Empty scene: unable to render\n";
@@ -290,6 +298,15 @@ HittableList perlin_random_scene()
     world.add(std::make_shared<Sphere>(Point3{4, 1, 0}, 1.0, metal));
 
     return world;
+}
+
+HittableList earth_sphere()
+{
+    auto earth_texture = std::make_shared<ImageTexture>("earthmap.jpg");
+    auto earth_surface = std::make_shared<Lambertian>(earth_texture);
+    auto globe = std::make_shared<Sphere>(Point3{0, 0, 0}, 2, earth_surface);
+
+    return HittableList{globe};
 }
 
 Color ray_color(const Ray& ray, const Hittable& world, int depth)

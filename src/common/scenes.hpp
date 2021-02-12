@@ -5,4 +5,5 @@ enum class Scenes
     TwoCheckeredSpheres,
     PerlinTexture,
     PerlinTextureRandomSpheres,
+    EarthSphere,
 };
