@@ -12,7 +12,13 @@ class Material
 {
 public:
     virtual bool scatter(const Ray& incoming_ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const = 0;
+    virtual Color emitted(double u, double v, const Point3& point) const;
 };
+
+Color Material::emitted(double u, double v, const Point3& point) const
+{
+    return Color{0, 0, 0};
+}
 
 class Lambertian: public Material
 {
@@ -109,6 +115,28 @@ double Dielectric::reflectance(double cosine, double refraction_ratio)
     auto r0 = (1 - refraction_ratio) / (1 + refraction_ratio);
     r0 = r0 * r0;
     return r0 + (1 - r0) * std::pow((1 - cosine), 5);
+}
+
+class DiffuseLight: public Material
+{
+public:
+    std::shared_ptr<Texture> emit;
+
+    DiffuseLight(std::shared_ptr<Texture> texture): emit{texture} {}
+    DiffuseLight(Color color): emit{std::make_shared<SolidColor>(color)} {}
+
+    virtual bool scatter(const Ray& ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const override;
+    virtual Color emitted(double u, double v, const Point3& point) const override;
+};
+
+bool DiffuseLight::scatter(const Ray& ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const
+{
+    return false; // DiffuseLight don't scatter incoming rays, only emit light
+}
+
+Color DiffuseLight::emitted(double u, double v, const Point3& point) const
+{
+    return emit->value(u, v, point);
 }
 
 #endif // MATERIAL_HPP

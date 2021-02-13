@@ -6,4 +6,7 @@ enum class Scenes
     PerlinTexture,
     PerlinTextureRandomSpheres,
     EarthSphere,
+    SimpleLight,
+    SimpleLightSphere,
+    EmptyCornellBox,
 };

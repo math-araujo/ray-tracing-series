@@ -1,3 +1,4 @@
+#include "aarect.hpp"
 #include "camera.hpp"
 #include "color.hpp"
 #include "hittable_list.hpp"
@@ -29,17 +30,29 @@ HittableList perlin_random_scene();
 // Earth mapped to a sphere
 HittableList earth_sphere();
 
+// Rectangle as a light and a sphere with NoiseTexture
+HittableList simple_light();
+
+// Rectangle and sphere as light source and a sphere with NoiseTexture
+HittableList simple_light_with_sphere();
+
+// Empty Cornell Box
+HittableList empty_cornell_box();
+
 // Recursive ray tracing function to compute color for a pixel
 Color ray_color(const Ray& ray, const Hittable& world, int depth);
+
+// Overloading of ray_color to accept a single background color instead of a gradient
+Color ray_color(const Ray& ray, const Color& background, const Hittable& world, int depth);
 
 int main()
 {
     // Image settings
-    constexpr double aspect_ratio = 16.0 / 9.0;
-    constexpr int image_width = 400;
-    constexpr int image_height = static_cast<int>(image_width / aspect_ratio); // 800
-    constexpr int samples_per_pixel = 100;
-    constexpr int max_depth = 50;
+    double aspect_ratio = 16.0 / 9.0;
+    int image_width = 400;
+    int image_height = static_cast<int>(image_width / aspect_ratio); // 800
+    int samples_per_pixel = 400;
+    int max_depth = 50;
 
     /*
     Wide-angle view world settings
@@ -58,9 +71,10 @@ int main()
     double distance_to_focus{1.0};
     double aperture{0.0};
 
-    auto choosen_scene{Scenes::EarthSphere};
+    auto choosen_scene{Scenes::EmptyCornellBox};
     bool use_motion_blur{true};
     HittableList world;
+    Color background{0, 0, 0};
 
     switch (choosen_scene)
     {
@@ -70,6 +84,7 @@ int main()
         aperture = 0.1;
         distance_to_focus = (look_from - look_at).length();
         world = hollow_glass_scene();
+        background = Color{0.70, 0.80, 1.00};
         break;
     case Scenes::Random:
         look_from = Point3{13, 2, 3};
@@ -77,18 +92,21 @@ int main()
         aperture = 0.1;
         distance_to_focus = 10.0;
         world = random_scene(use_motion_blur);
+        background = Color{0.70, 0.80, 1.00};
         break;
     case Scenes::TwoCheckeredSpheres:
         look_from = Point3{13, 2, 3};
         look_at = {0, 0, 0};
         distance_to_focus = 10.0;
         world = two_checkered_spheres();
+        background = Color{0.70, 0.80, 1.00};
         break;
     case Scenes::PerlinTexture:
         look_from = Point3{13, 2, 3};
         look_at = {0, 0, 0};
         distance_to_focus = 10.0;
         world = two_perlin_spheres();
+        background = Color{0.70, 0.80, 1.00};
         break;
     case Scenes::PerlinTextureRandomSpheres:
         look_from = Point3{13, 2, 3};
@@ -96,11 +114,32 @@ int main()
         aperture = 0.1;
         distance_to_focus = 10.0;
         world = perlin_random_scene();
+        background = Color{0.70, 0.80, 1.00};
         break;
     case Scenes::EarthSphere:
         look_from = Point3{13, 2, 3};
         look_at = {0, 0, 0};
         world = earth_sphere();
+        background = Color{0.70, 0.80, 1.00};
+        break;
+    case Scenes::SimpleLight:
+        look_from = Point3{26, 3, 6};
+        look_at = Point3{0, 2, 0};
+        world = simple_light();
+        break;
+    case Scenes::SimpleLightSphere:
+        look_from = Point3{26, 3, 6};
+        look_at = Point3{0, 2, 0};
+        world = simple_light_with_sphere();
+        break;
+    case Scenes::EmptyCornellBox:
+        aspect_ratio = 1.0;
+        image_width = 600;
+        image_height = static_cast<int>(image_width / aspect_ratio);
+        look_from = Point3{278, 278, -800};
+        look_at = Point3{278, 278, 0};
+        vertical_fov = 40.0;
+        world = empty_cornell_box();
         break;
     default:
         std::cerr << "Empty scene: unable to render\n";
@@ -128,7 +167,8 @@ int main()
                 auto v = (row + random_double()) / (image_height - 1);
 
                 Ray ray = camera.get_ray(u, v);
-                pixel_color += ray_color(ray, world, max_depth);
+                // pixel_color += ray_color(ray, world, max_depth); // gradient-sky background
+                pixel_color += ray_color(ray, background, world, max_depth);
             }
 
             write_color(std::cout, pixel_color, samples_per_pixel);
@@ -309,6 +349,54 @@ HittableList earth_sphere()
     return HittableList{globe};
 }
 
+HittableList simple_light()
+{
+    HittableList objects;
+
+    auto perlin_texture = std::make_shared<NoiseTexture>(4);
+    objects.add(std::make_shared<Sphere>(Point3{0, -1000, 0}, 1000, std::make_shared<Lambertian>(perlin_texture)));
+    objects.add(std::make_shared<Sphere>(Point3{0, 2, 0}, 2, std::make_shared<Lambertian>(perlin_texture)));
+
+    auto diffuse_light = std::make_shared<DiffuseLight>(Color{4, 4, 4});
+    objects.add(std::make_shared<XYRect>(3, 5, 1, 3, -2, diffuse_light));
+
+    return objects;
+}
+
+HittableList simple_light_with_sphere()
+{
+    HittableList objects;
+
+    auto perlin_texture = std::make_shared<NoiseTexture>(4);
+    objects.add(std::make_shared<Sphere>(Point3{0, -1000, 0}, 1000, std::make_shared<Lambertian>(perlin_texture)));
+    objects.add(std::make_shared<Sphere>(Point3{0, 2, 0}, 2, std::make_shared<Lambertian>(perlin_texture)));
+
+    auto diffuse_light = std::make_shared<DiffuseLight>(Color{4, 4, 4});
+    objects.add(std::make_shared<XYRect>(3, 5, 1, 3, -2, diffuse_light));
+    objects.add(std::make_shared<Sphere>(Point3{0, 7, 0}, 2, diffuse_light));
+
+    return objects;
+}
+
+HittableList empty_cornell_box()
+{
+    HittableList objects;
+
+    auto red = std::make_shared<Lambertian>(Color{0.65, 0.05, 0.05});
+    auto white = std::make_shared<Lambertian>(Color{0.73, 0.73, 0.73});
+    auto green = std::make_shared<Lambertian>(Color{0.12, 0.45, 0.15});
+    auto light = std::make_shared<DiffuseLight>(Color{15, 15, 15});
+
+    objects.add(std::make_shared<YZRect>(0, 555, 0, 555, 555, green));
+    objects.add(std::make_shared<YZRect>(0, 555, 0, 555, 0, red));
+    objects.add(std::make_shared<XZRect>(213, 343, 227, 332, 554, light));
+    objects.add(std::make_shared<XZRect>(0, 555, 0, 555, 0, white));
+    objects.add(std::make_shared<XZRect>(0, 555, 0, 555, 555, white));
+    objects.add(std::make_shared<XYRect>(0, 555, 0, 555, 555, white));
+
+    return objects;
+}
+
 Color ray_color(const Ray& ray, const Hittable& world, int depth)
 {
     if (depth == 0)
@@ -339,4 +427,29 @@ Color ray_color(const Ray& ray, const Hittable& world, int depth)
     Color light_blue{0.5, 0.7, 1.0};
     
     return (1 - lerp_parameter) * white + lerp_parameter * light_blue;
+}
+
+Color ray_color(const Ray& ray, const Color& background, const Hittable& world, int depth)
+{
+    if (depth == 0)
+    {
+        return Color{0, 0, 0};
+    }
+
+    HitRecord record;
+    if (!world.hit(ray, 0.001, infinity, record))
+    {
+        return background;
+    }
+
+    Ray scattered_ray;
+    Color attenuation;
+    Color emitted = record.material->emitted(record.u, record.v, record.point);
+
+    if (!record.material->scatter(ray, record, attenuation, scattered_ray))
+    {
+        return emitted;
+    }
+
+    return emitted + attenuation * ray_color(scattered_ray, background, world, depth - 1);
 }
