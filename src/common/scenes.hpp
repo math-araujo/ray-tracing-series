@@ -1,3 +1,4 @@
+#include "box.hpp"
 #include "hittable.hpp"
 #include "material.hpp"
 #include "sphere.hpp"
@@ -15,6 +16,7 @@ enum class Scenes
     SimpleLight,
     SimpleLightSphere,
     EmptyCornellBox,
+    CornellBox,
 };
 
 // Simple scene developed along the "In One Weekend" book using lambertian, metal and dielectrics materials
@@ -43,6 +45,11 @@ HittableList simple_light_with_sphere();
 
 // Empty Cornell Box
 HittableList empty_cornell_box();
+
+// Classic Cornell Box with two rotated blocks
+HittableList cornell_box();
+
+// Scenes definitions
 
 HittableList hollow_glass_scene()
 {
@@ -259,6 +266,30 @@ HittableList empty_cornell_box()
     objects.add(std::make_shared<XZRect>(0, 555, 0, 555, 0, white));
     objects.add(std::make_shared<XZRect>(0, 555, 0, 555, 555, white));
     objects.add(std::make_shared<XYRect>(0, 555, 0, 555, 555, white));
+
+    return objects;
+}
+
+HittableList cornell_box()
+{
+    HittableList objects;
+
+    auto red = std::make_shared<Lambertian>(Color{0.65, 0.05, 0.05});
+    auto white = std::make_shared<Lambertian>(Color{0.73, 0.73, 0.73});
+    auto green = std::make_shared<Lambertian>(Color{0.12, 0.45, 0.15});
+    auto light = std::make_shared<DiffuseLight>(Color{15, 15, 15});
+
+    // Walls and light source
+    objects.add(std::make_shared<YZRect>(0, 555, 0, 555, 555, green));
+    objects.add(std::make_shared<YZRect>(0, 555, 0, 555, 0, red));
+    objects.add(std::make_shared<XZRect>(213, 343, 227, 332, 554, light));
+    objects.add(std::make_shared<XZRect>(0, 555, 0, 555, 555, white));
+    objects.add(std::make_shared<XZRect>(0, 555, 0, 555, 0, white));
+    objects.add(std::make_shared<XYRect>(0, 555, 0, 555, 555, white));
+
+    // Instance blocks
+    objects.add(std::make_shared<Box>(Point3{130, 0, 65}, Point3{295, 165, 230}, white));
+    objects.add(std::make_shared<Box>(Point3{265, 0, 295}, Point3{430, 330, 460}, white));
 
     return objects;
 }

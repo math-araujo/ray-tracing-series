@@ -129,7 +129,7 @@ public:
     virtual Color emitted(double u, double v, const Point3& point) const override;
 };
 
-bool DiffuseLight::scatter(const Ray& ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const
+bool DiffuseLight::scatter(const Ray& incoming_ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const
 {
     return false; // DiffuseLight don't scatter incoming rays, only emit light
 }

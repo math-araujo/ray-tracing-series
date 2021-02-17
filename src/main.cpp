@@ -44,7 +44,7 @@ int main()
     double distance_to_focus{1.0};
     double aperture{0.0};
 
-    auto choosen_scene{Scenes::EmptyCornellBox};
+    auto choosen_scene{Scenes::CornellBox};
     bool use_motion_blur{true};
     HittableList world;
     Color background{0, 0, 0};
@@ -113,6 +113,16 @@ int main()
         look_at = Point3{278, 278, 0};
         vertical_fov = 40.0;
         world = empty_cornell_box();
+        break;
+    case Scenes::CornellBox:
+        aspect_ratio = 1.0;
+        image_width = 600;
+        image_height = static_cast<int>(image_width / aspect_ratio);
+        samples_per_pixel = 200;
+        look_from = Point3{278, 278, -800};
+        look_at = Point3{278, 278, 0};
+        vertical_fov = 40.0;
+        world = cornell_box();
         break;
     default:
         std::cerr << "Empty scene: unable to render\n";
@@ -185,7 +195,7 @@ Color ray_color(const Ray& ray, const Hittable& world, int depth)
 
 Color ray_color(const Ray& ray, const Color& background, const Hittable& world, int depth)
 {
-    if (depth == 0)
+    if (depth <= 0)
     {
         return Color{0, 0, 0};
     }
