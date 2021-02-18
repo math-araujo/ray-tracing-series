@@ -44,7 +44,7 @@ int main()
     double distance_to_focus{1.0};
     double aperture{0.0};
 
-    auto choosen_scene{Scenes::SmokeCornellBox};
+    auto choosen_scene{Scenes::NextWeekFinal};
     bool use_motion_blur{true};
     HittableList world;
     Color background{0, 0, 0};
@@ -143,6 +143,16 @@ int main()
         look_at = Point3{278, 278, 0};
         vertical_fov = 40.0;
         world = smoke_cornell_box();
+        break;
+    case Scenes::NextWeekFinal:
+        aspect_ratio = 1.0;
+        image_width = 800;
+        image_height = static_cast<int>(image_width / aspect_ratio);
+        samples_per_pixel = 1000;
+        look_from = Point3{478, 278, -600};
+        look_at = Point3{278, 278, 0};
+        vertical_fov = 40.0;
+        world = next_week_final_scene();
         break;
     default:
         std::cerr << "Empty scene: unable to render\n";

@@ -1,4 +1,5 @@
 #include "box.hpp"
+#include "bvh.hpp"
 #include "constant_medium.hpp"
 #include "hittable.hpp"
 #include "material.hpp"
@@ -59,6 +60,9 @@ HittableList classic_cornell_box();
 
 // Cornell Box with blocks replaced by smoke
 HittableList smoke_cornell_box();
+
+// Final scene of Book 2 - Next Week: BVH, mist, textures, emissive materials, motion blur
+HittableList next_week_final_scene();
 
 // Scenes definitions
 
@@ -364,6 +368,80 @@ HittableList smoke_cornell_box()
     
     objects.add(std::make_shared<ConstantMedium>(box1, 0.01, Color{0, 0, 0}));
     objects.add(std::make_shared<ConstantMedium>(box2, 0.01, Color{1, 1, 1}));
+
+    return objects;
+}
+
+HittableList next_week_final_scene()
+{
+    HittableList ground_boxes;
+    auto ground_material = std::make_shared<Lambertian>(Color{0.48, 0.83, 0.53});
+    
+    const int boxes_per_side = 20;
+    for (int i = 0; i < boxes_per_side; ++i)
+    {
+        for (int j = 0; j < boxes_per_side; ++j)
+        {
+            auto w = 100.0;
+            auto x0 = -1000.0 + i * w;
+            auto z0 = -1000.0 + j * w;
+            auto y0 = 0.0;
+
+            auto x1 = x0 + w;
+            auto y1 = random_double(1, 101);
+            auto z1 = z0 + w;
+
+            ground_boxes.add(std::make_shared<Box>(Point3{x0, y0, z0}, Point3{x1, y1, z1}, ground_material));
+        }
+    }
+
+    HittableList objects;
+
+    objects.add(std::make_shared<BVHNode>(ground_boxes, 0, 1));
+
+    auto light = std::make_shared<DiffuseLight>(Color{7, 7, 7});
+    objects.add(std::make_shared<XZRect>(123, 423, 147, 412, 554, light));
+
+    // Sphere with motion blur
+    Point3 initial_center{400, 400, 200};
+    Point3 final_center = initial_center + Vector3{30, 0, 0};
+    auto moving_sphere_material = std::make_shared<Lambertian>(Color{0.7, 0.3, 0.1});
+    objects.add(std::make_shared<MovingSphere>(initial_center, final_center, 0, 1, 50, moving_sphere_material));
+    
+    // Glass sphere, bottom center
+    objects.add(std::make_shared<Sphere>(Point3{260, 150, 45}, 50, std::make_shared<Dielectric>(1.5)));
+    // Metallic sphere, bottom right
+    objects.add(std::make_shared<Sphere>(Point3{0, 150, 145}, 50, std::make_shared<Metal>(Color{0.8, 0.8, 0.9}, 1.0)));
+
+    // Blue sphere: formally this is subsurface scattering or reflection
+    // This is implemented as a volume (e.g. ConstantMedium) inside a dielectric
+    // Subsurface scattering Step 1: standard glass sphere
+    auto sphere_boundary = std::make_shared<Sphere>(Point3{360, 150, 145}, 70, std::make_shared<Dielectric>(1.5));
+    objects.add(sphere_boundary);
+    // Subsurface scattering Step 2: add a blue volume inside the boundary (i.e. the sphere)
+    objects.add(std::make_shared<ConstantMedium>(sphere_boundary, 0.2, Color{0.2, 0.4, 0.9}));
+
+    // Ambient mist: a sphere around the entire ambient is used as a boundary and the volume is spread inside
+    auto ambient_boundary = std::make_shared<Sphere>(Point3{0, 0, 0}, 5000, std::make_shared<Dielectric>(1.5));
+    objects.add(std::make_shared<ConstantMedium>(ambient_boundary, 0.0001, Color{1, 1, 1}));
+
+    // Spheres with textures
+    auto earth_material = std::make_shared<Lambertian>(std::make_shared<ImageTexture>("earthmap.jpg"));
+    objects.add(std::make_shared<Sphere>(Point3{400, 200, 400}, 100, earth_material));
+
+    auto perlin_texture = std::make_shared<NoiseTexture>(0.1);
+    objects.add(std::make_shared<Sphere>(Point3{220, 280, 300}, 80, std::make_shared<Lambertian>(perlin_texture)));
+
+    // Cotton box
+    HittableList cotton_box;
+    auto white = std::make_shared<Lambertian>(Color{0.73, 0.73, 0.73});
+    const int number_of_spheres = 1000;
+    for (int i = 0; i < number_of_spheres; ++i)
+    {
+        cotton_box.add(std::make_shared<Sphere>(Point3::random(0, 165), 10, white));
+    }
+
+    objects.add(std::make_shared<Translate>(std::make_shared<RotateY>(std::make_shared<BVHNode>(cotton_box, 0.0, 1.0), 15), Vector3{-100, 270, 395}));
 
     return objects;
 }
