@@ -139,4 +139,22 @@ Color DiffuseLight::emitted(double u, double v, const Point3& point) const
     return emit->value(u, v, point);
 }
 
+class Isotropic: public Material
+{
+public:
+    std::shared_ptr<Texture> albedo;
+
+    Isotropic(Color color): albedo{std::make_shared<SolidColor>(color)} {}
+    Isotropic(std::shared_ptr<Texture> texture): albedo{texture} {}
+
+    virtual bool scatter(const Ray& incoming_ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const override;
+};
+
+bool Isotropic::scatter(const Ray& incoming_ray, const HitRecord& record, Color& attenuation, Ray& scattered_ray) const
+{
+    scattered_ray = Ray{record.point, random_in_unit_sphere(), incoming_ray.time()};
+    attenuation = albedo->value(record.u, record.v, record.point);
+    return true;
+}
+
 #endif // MATERIAL_HPP

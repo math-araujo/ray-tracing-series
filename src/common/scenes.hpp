@@ -1,4 +1,5 @@
 #include "box.hpp"
+#include "constant_medium.hpp"
 #include "hittable.hpp"
 #include "material.hpp"
 #include "sphere.hpp"
@@ -19,6 +20,8 @@ enum class Scenes
     EmptyCornellBox,
     TwoBlocksCornellBox,
     ClassicCornellBox,    
+    SmokeCornellBox,
+    NextWeekFinal,
 };
 
 // Simple scene developed along the "In One Weekend" book using lambertian, metal and dielectrics materials
@@ -48,8 +51,14 @@ HittableList simple_light_with_sphere();
 // Empty Cornell Box
 HittableList empty_cornell_box();
 
+// Initial Cornell Box with two blocks (unrotated)
+HittableList two_blocks_cornell_box();
+
 // Classic Cornell Box with two rotated blocks
-HittableList cornell_box();
+HittableList classic_cornell_box();
+
+// Cornell Box with blocks replaced by smoke
+HittableList smoke_cornell_box();
 
 // Scenes definitions
 
@@ -323,6 +332,38 @@ HittableList classic_cornell_box()
     box2 = std::make_shared<RotateY>(box2, -18);
     box2 = std::make_shared<Translate>(box2, Vector3{130, 0, 65});
     objects.add(box2);
+
+    return objects;
+}
+
+HittableList smoke_cornell_box()
+{
+    HittableList objects;
+
+    auto red = std::make_shared<Lambertian>(Color{0.65, 0.05, 0.05});
+    auto white = std::make_shared<Lambertian>(Color{0.73, 0.73, 0.73});
+    auto green = std::make_shared<Lambertian>(Color{0.12, 0.45, 0.15});
+    auto light = std::make_shared<DiffuseLight>(Color{7, 7, 7});
+
+    // Walls and light source
+    objects.add(std::make_shared<YZRect>(0, 555, 0, 555, 555, green));
+    objects.add(std::make_shared<YZRect>(0, 555, 0, 555, 0, red));
+    objects.add(std::make_shared<XZRect>(113, 443, 127, 432, 554, light));
+    objects.add(std::make_shared<XZRect>(0, 555, 0, 555, 555, white));
+    objects.add(std::make_shared<XZRect>(0, 555, 0, 555, 0, white));
+    objects.add(std::make_shared<XYRect>(0, 555, 0, 555, 555, white));
+
+    // Smoke blocks
+    std::shared_ptr<Hittable> box1 = std::make_shared<Box>(Point3{0, 0, 0}, Point3{165, 330, 165}, white);
+    box1 = std::make_shared<RotateY>(box1, 15);
+    box1 = std::make_shared<Translate>(box1, Vector3{265, 0, 295});  
+
+    std::shared_ptr<Hittable> box2 = std::make_shared<Box>(Point3{0, 0, 0}, Point3{165, 165, 165}, white);
+    box2 = std::make_shared<RotateY>(box2, -18);
+    box2 = std::make_shared<Translate>(box2, Vector3{130, 0, 65});
+    
+    objects.add(std::make_shared<ConstantMedium>(box1, 0.01, Color{0, 0, 0}));
+    objects.add(std::make_shared<ConstantMedium>(box2, 0.01, Color{1, 1, 1}));
 
     return objects;
 }

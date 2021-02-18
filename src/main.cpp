@@ -44,7 +44,7 @@ int main()
     double distance_to_focus{1.0};
     double aperture{0.0};
 
-    auto choosen_scene{Scenes::ClassicCornellBox};
+    auto choosen_scene{Scenes::SmokeCornellBox};
     bool use_motion_blur{true};
     HittableList world;
     Color background{0, 0, 0};
@@ -133,6 +133,16 @@ int main()
         look_at = Point3{278, 278, 0};
         vertical_fov = 40.0;
         world = classic_cornell_box();
+        break;
+    case Scenes::SmokeCornellBox:
+        aspect_ratio = 1.0;
+        image_width = 600;
+        image_height = static_cast<int>(image_width / aspect_ratio);
+        samples_per_pixel = 200;
+        look_from = Point3{278, 278, -800};
+        look_at = Point3{278, 278, 0};
+        vertical_fov = 40.0;
+        world = smoke_cornell_box();
         break;
     default:
         std::cerr << "Empty scene: unable to render\n";
