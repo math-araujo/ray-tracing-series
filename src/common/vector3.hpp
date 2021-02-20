@@ -136,6 +136,16 @@ inline Vector3 operator/(const Vector3& vec, double scale)
     return (1 / scale) * vec;
 }
 
+inline bool operator==(const Vector3& u, const Vector3& v)
+{
+    return u.coord[0] == v.coord[0] && u.coord[1] == v.coord[1] && u.coord[2] == v.coord[2];
+}
+
+inline bool operator !=(const Vector3& u, const Vector3& v)
+{
+    return !(u == v);
+}
+
 inline double dot(const Vector3& u, const Vector3& v)
 {
     return u.coord[0] * v.coord[0] + u.coord[1] * v.coord[1] + u.coord[2] * v.coord[2];
