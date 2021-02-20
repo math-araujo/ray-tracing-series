@@ -22,9 +22,9 @@ int main()
 {
     // Image settings
     double aspect_ratio = 16.0 / 9.0;
-    int image_width = 400;
+    int image_width = 1200;
     int image_height = static_cast<int>(image_width / aspect_ratio); // 800
-    int samples_per_pixel = 400;
+    int samples_per_pixel = 100;
     int max_depth = 50;
 
     /*
@@ -44,7 +44,7 @@ int main()
     double distance_to_focus{1.0};
     double aperture{0.0};
 
-    auto choosen_scene{Scenes::NextWeekFinal};
+    auto choosen_scene{Scenes::WikipediaPathTracing};
     bool use_motion_blur{true};
     HittableList world;
     Color background{0, 0, 0};
@@ -154,6 +154,24 @@ int main()
         vertical_fov = 40.0;
         world = next_week_final_scene();
         break;
+    case Scenes::WikipediaPathTracing:
+        aspect_ratio = 3.0 / 2.0;
+        image_height = static_cast<int>(image_width / aspect_ratio); // 800
+        look_from = Point3{0, 13, 30};
+        look_at = {0, 3, 0};
+        background = Color{1.0, 1.0, 1.0};
+        //background = Color{0.0, 0.0, 0.0};
+        if (background != Color{0, 0, 0})
+        {
+            samples_per_pixel = 200;
+            world = wikipedia_path_tracing_scene();
+        }
+        else
+        {
+            samples_per_pixel = 500; // More rays are needed because of the small light source
+            world = wikipedia_path_tracing_scene(false);
+        }
+        break;
     default:
         std::cerr << "Empty scene: unable to render\n";
         return 1;
@@ -180,7 +198,7 @@ int main()
                 auto v = (row + random_double()) / (image_height - 1);
 
                 Ray ray = camera.get_ray(u, v);
-                // pixel_color += ray_color(ray, world, max_depth); // gradient-sky background
+                //pixel_color += ray_color(ray, world, max_depth); // gradient-sky background
                 pixel_color += ray_color(ray, background, world, max_depth);
             }
 
