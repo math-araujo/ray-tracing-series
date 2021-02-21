@@ -44,7 +44,7 @@ int main()
     double distance_to_focus{1.0};
     double aperture{0.0};
 
-    auto choosen_scene{Scenes::WikipediaPathTracing};
+    auto choosen_scene{Scenes::RecursiveGlass};
     bool use_motion_blur{true};
     HittableList world;
     Color background{0, 0, 0};
@@ -61,7 +61,7 @@ int main()
         break;
     case Scenes::Random:
         look_from = Point3{13, 2, 3};
-        look_at = {0, 0, 0};
+        look_at = Point3{0, 0, 0};
         aperture = 0.1;
         distance_to_focus = 10.0;
         world = random_scene(use_motion_blur);
@@ -69,21 +69,21 @@ int main()
         break;
     case Scenes::TwoCheckeredSpheres:
         look_from = Point3{13, 2, 3};
-        look_at = {0, 0, 0};
+        look_at = Point3{0, 0, 0};
         distance_to_focus = 10.0;
         world = two_checkered_spheres();
         background = Color{0.70, 0.80, 1.00};
         break;
     case Scenes::PerlinTexture:
         look_from = Point3{13, 2, 3};
-        look_at = {0, 0, 0};
+        look_at = Point3{0, 0, 0};
         distance_to_focus = 10.0;
         world = two_perlin_spheres();
         background = Color{0.70, 0.80, 1.00};
         break;
     case Scenes::PerlinTextureRandomSpheres:
         look_from = Point3{13, 2, 3};
-        look_at = {0, 0, 0};
+        look_at = Point3{0, 0, 0};
         aperture = 0.1;
         distance_to_focus = 10.0;
         world = perlin_random_scene();
@@ -91,7 +91,7 @@ int main()
         break;
     case Scenes::EarthSphere:
         look_from = Point3{13, 2, 3};
-        look_at = {0, 0, 0};
+        look_at = Point3{0, 0, 0};
         world = earth_sphere();
         background = Color{0.70, 0.80, 1.00};
         break;
@@ -158,7 +158,7 @@ int main()
         aspect_ratio = 3.0 / 2.0;
         image_height = static_cast<int>(image_width / aspect_ratio); // 800
         look_from = Point3{0, 13, 30};
-        look_at = {0, 3, 0};
+        look_at = Point3{0, 3, 0};
         background = Color{1.0, 1.0, 1.0};
         //background = Color{0.0, 0.0, 0.0};
         if (background != Color{0, 0, 0})
@@ -171,6 +171,12 @@ int main()
             samples_per_pixel = 500; // More rays are needed because of the small light source
             world = wikipedia_path_tracing_scene(false);
         }
+        break;
+    case Scenes::RecursiveGlass:
+        look_from = Point3{0, 1, 6};
+        look_at = Point3{0, 1, 0};
+        world = recursive_glass();
+        background = Color{1.0, 1.0, 1.0};
         break;
     default:
         std::cerr << "Empty scene: unable to render\n";

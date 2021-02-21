@@ -24,7 +24,8 @@ enum class Scenes
     SmokeCornellBox,
     NextWeekFinal,
     // Custom scenes
-    WikipediaPathTracing,    
+    WikipediaPathTracing,
+    RecursiveGlass
 };
 
 // Simple scene developed along the "In One Weekend" book using lambertian, metal and dielectrics materials
@@ -75,6 +76,8 @@ Arguments:
     and it's assumed that the light comes from the background.
 */
 HittableList wikipedia_path_tracing_scene(bool ambient_light = true);
+
+HittableList recursive_glass();
 
 // Scenes definitions
 
@@ -468,8 +471,7 @@ HittableList wikipedia_path_tracing_scene(bool ambient_light)
     const Color blue{0.0, 0.0, 1.0};
     const Color salmon{1.0, 0.501960784, 0.4};
 
-    auto white_material = std::make_shared<Lambertian>(white);
-    auto salmon_material = std::make_shared<Lambertian>(salmon);
+    const auto salmon_material = std::make_shared<Lambertian>(salmon);
     world.add(std::make_shared<Sphere>(Point3{0, -1000, 0}, 1000, salmon_material));
 
     if (!ambient_light)
@@ -477,11 +479,12 @@ HittableList wikipedia_path_tracing_scene(bool ambient_light)
         world.add(std::make_shared<Translate>(std::make_shared<YZRect>(-5, 5, -5, 5, -20, std::make_shared<DiffuseLight>(Color{10, 10, 10})), Vector3{0, 20, 0}));
     }
 
-    auto red_material = std::make_shared<Lambertian>(red);
-    auto green_material = std::make_shared<Lambertian>(green);
-    auto blue_material = std::make_shared<Lambertian>(blue);
-
-    auto no_fuzz_metal = std::make_shared<Metal>(white, 0.0);
+    const auto white_material = std::make_shared<Lambertian>(white);
+    const auto red_material = std::make_shared<Lambertian>(red);
+    const auto green_material = std::make_shared<Lambertian>(green);
+    const auto blue_material = std::make_shared<Lambertian>(blue);
+    
+    const auto no_fuzz_metal = std::make_shared<Metal>(white, 0.0);
     world.add(std::make_shared<Sphere>(Point3{-8.0, 7, 0}, 1.0, no_fuzz_metal)); // left floating sphere
     
     world.add(std::make_shared<Sphere>(Point3{-6.5, 1, 0}, 1.0, red_material));
@@ -490,7 +493,7 @@ HittableList wikipedia_path_tracing_scene(bool ambient_light)
     world.add(std::make_shared<Box>(Point3{-5.0, 0.0, -1.0}, Point3{-1.5, 0.25, 1.0}, white_material));
     world.add(std::make_shared<Sphere>(Point3{-3.25, 1.25, -0.0}, 1.0, white_material));
 
-    auto central_metal = std::make_shared<Metal>(Color{1, 1, 1}, 0.4);
+    const auto central_metal = std::make_shared<Metal>(Color{1, 1, 1}, 0.4);
     world.add(std::make_shared<Sphere>(Point3{0, 1, 0}, 1.0, blue_material));
     world.add(std::make_shared<Sphere>(Point3{0, 2, -3}, 2.0, central_metal));
     world.add(std::make_shared<Sphere>(Point3{0, 7, 0}, 1.0, no_fuzz_metal)); // center floating sphere
@@ -501,6 +504,25 @@ HittableList wikipedia_path_tracing_scene(bool ambient_light)
     world.add(std::make_shared<Sphere>(Point3{6.5, 1, 0}, 1.0, green_material));
     world.add(std::make_shared<Sphere>(Point3{6.5, 2, -3}, 2.0, no_fuzz_metal));
     world.add(std::make_shared<Sphere>(Point3{8.0, 7, 0}, 1.0, no_fuzz_metal)); // right floating sphere
+
+    return world;
+}
+
+HittableList recursive_glass()
+{
+    HittableList world;
+
+    const Color dark_pink{1.0, 0.0, 0.498039216};
+    const Color aqua{0.0, 0.501960784, 1.0};
+
+    const auto checker_texture = std::make_shared<CheckerTexture>(dark_pink, aqua);
+    world.add(std::make_shared<Sphere>(Point3{0, -1000, 0}, 1000, std::make_shared<Lambertian>(checker_texture)));
+
+    constexpr double index_of_refraction = 1.5;
+    const auto dielectric = std::make_shared<Dielectric>(index_of_refraction);
+    const auto reverse_dielectric = std::make_shared<Dielectric>(1 / index_of_refraction);
+    world.add(std::make_shared<Sphere>(Point3{0, 1, 0}, 1.0, dielectric));
+    world.add(std::make_shared<Sphere>(Point3{0, 1, 0}, 0.25, reverse_dielectric));
 
     return world;
 }
