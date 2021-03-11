@@ -33,6 +33,11 @@ Some custom made scenes:
 
 ![Recursives Spheres](images/recursive_glass.png?raw=True)
 
+![Bunny Point Cloud](images/bunny_point_cloud.png?raw=True)
+Note: the model used in this scene is the famous Stanford Bunny, which can be downloaded
+in [this link](https://graphics.stanford.edu/~mdfisher/Data/Meshes/bunny.obj), and is part of the
+[Stanford 3D Scanning Repository](http://graphics.stanford.edu/data/3Dscanrep/).
+
 <!-- -->
 ## Building
 

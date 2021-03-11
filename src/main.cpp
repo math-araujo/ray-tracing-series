@@ -23,7 +23,7 @@ int main()
     // Image settings
     double aspect_ratio = 16.0 / 9.0;
     int image_width = 1200;
-    int image_height = static_cast<int>(image_width / aspect_ratio); // 800
+    int image_height = static_cast<int>(image_width / aspect_ratio); // 675
     int samples_per_pixel = 100;
     int max_depth = 50;
 
@@ -44,7 +44,7 @@ int main()
     double distance_to_focus{1.0};
     double aperture{0.0};
 
-    auto choosen_scene{Scenes::RecursiveGlass};
+    auto choosen_scene{Scenes::PointCloud};
     bool use_motion_blur{true};
     HittableList world;
     Color background{0, 0, 0};
@@ -177,6 +177,16 @@ int main()
         look_at = Point3{0, 1, 0};
         world = recursive_glass();
         background = Color{1.0, 1.0, 1.0};
+        break;
+    case Scenes::PointCloud:
+        aspect_ratio = 3.0 / 2.0;
+        image_height = static_cast<int>(image_width / aspect_ratio); // 800
+        look_from = Point3{0, 4, 10};
+        look_at = Point3{-0.25, 1.5, 0};
+        aperture = 0.0;
+        distance_to_focus = 1.0;
+        world = point_cloud(); 
+        background = Color{0.70, 0.80, 1.00};
         break;
     default:
         std::cerr << "Empty scene: unable to render\n";

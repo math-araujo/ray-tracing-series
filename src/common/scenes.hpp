@@ -6,7 +6,9 @@
 #include "sphere.hpp"
 #include "transform.hpp"
 #include "vector3.hpp"
+#include <fstream>
 #include <memory>
+#include <sstream>
 
 enum class Scenes
 {
@@ -25,7 +27,8 @@ enum class Scenes
     NextWeekFinal,
     // Custom scenes
     WikipediaPathTracing,
-    RecursiveGlass
+    RecursiveGlass,
+    PointCloud
 };
 
 // Simple scene developed along the "In One Weekend" book using lambertian, metal and dielectrics materials
@@ -77,7 +80,14 @@ Arguments:
 */
 HittableList wikipedia_path_tracing_scene(bool ambient_light = true);
 
+// Glass sphere inside a glass sphere with ambient light and checkered textures
 HittableList recursive_glass();
+
+/*
+Point cloud of the Stanford Bunny Model; each vertex of the triangle mesh was
+draw as a sphere.
+*/
+HittableList point_cloud();
 
 // Scenes definitions
 
@@ -523,6 +533,50 @@ HittableList recursive_glass()
     const auto reverse_dielectric = std::make_shared<Dielectric>(1 / index_of_refraction);
     world.add(std::make_shared<Sphere>(Point3{0, 1, 0}, 1.0, dielectric));
     world.add(std::make_shared<Sphere>(Point3{0, 1, 0}, 0.25, reverse_dielectric));
+
+    return world;
+}
+
+HittableList point_cloud()
+{
+    HittableList world;
+    HittableList points;
+
+    const std::string filename{"obj/bunny.obj"};
+    std::ifstream input_file{filename};
+
+    auto lambertian = std::make_shared<Lambertian>(Color{0.8, 0.0, 0.4});
+    auto glass_material = std::make_shared<Dielectric>(1.5);
+
+    if (input_file.is_open())
+    {
+        std::string line;
+
+        while (std::getline(input_file, line))
+        {
+            std::istringstream stream{line};
+            char blank;
+
+            if (line.front() == 'v')
+            {
+                double x, y, z;
+                stream >> blank >> x >> y >> z;
+            
+                x *= 15.0;
+                y *= 15.0;
+                z *= 15.0;
+
+                points.add(std::make_shared<Sphere>(Point3{x, y, z}, 0.01, lambertian));
+            }
+        }
+
+        world.add(std::make_shared<BVHNode>(points, 0, 1));
+    }
+    else
+    {
+        std::cerr << "Unable to open file " << filename << "\n";
+    }
+    
 
     return world;
 }
