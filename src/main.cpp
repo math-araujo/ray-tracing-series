@@ -185,8 +185,9 @@ int main()
         look_at = Point3{-0.25, 1.5, 0};
         aperture = 0.0;
         distance_to_focus = 1.0;
-        world = point_cloud(); 
-        background = Color{0.70, 0.80, 1.00};
+        //background = Color{0.70, 0.80, 1.00};
+        background = Color{0, 0, 0};
+        world = point_cloud(background != Color{0, 0, 0}); 
         break;
     default:
         std::cerr << "Empty scene: unable to render\n";

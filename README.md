@@ -38,6 +38,8 @@ Note: the model used in this scene is the famous Stanford Bunny, which can be do
 in [this link](https://graphics.stanford.edu/~mdfisher/Data/Meshes/bunny.obj), and is part of the
 [Stanford 3D Scanning Repository](http://graphics.stanford.edu/data/3Dscanrep/).
 
+![Diffuse Light Bunny Point Cloud](images/night_bunny_point_cloud.png?raw=True)
+
 <!-- -->
 ## Building
 

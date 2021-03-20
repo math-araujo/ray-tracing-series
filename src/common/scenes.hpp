@@ -87,7 +87,7 @@ HittableList recursive_glass();
 Point cloud of the Stanford Bunny Model; each vertex of the triangle mesh was
 draw as a sphere.
 */
-HittableList point_cloud();
+HittableList point_cloud(bool ambient_light);
 
 // Scenes definitions
 
@@ -537,7 +537,7 @@ HittableList recursive_glass()
     return world;
 }
 
-HittableList point_cloud()
+HittableList point_cloud(bool ambient_light)
 {
     HittableList world;
     HittableList points;
@@ -546,7 +546,7 @@ HittableList point_cloud()
     std::ifstream input_file{filename};
 
     auto lambertian = std::make_shared<Lambertian>(Color{0.8, 0.0, 0.4});
-    auto glass_material = std::make_shared<Dielectric>(1.5);
+    auto diffuse_light = std::make_shared<DiffuseLight>(Color{4, 4, 4});
 
     if (input_file.is_open())
     {
@@ -566,7 +566,14 @@ HittableList point_cloud()
                 y *= 15.0;
                 z *= 15.0;
 
-                points.add(std::make_shared<Sphere>(Point3{x, y, z}, 0.01, lambertian));
+                if (ambient_light)
+                {
+                    points.add(std::make_shared<Sphere>(Point3{x, y, z}, 0.01, lambertian));
+                }
+                else 
+                {
+                    points.add(std::make_shared<Sphere>(Point3{x, y, z}, 0.01, diffuse_light));
+                }
             }
         }
 
