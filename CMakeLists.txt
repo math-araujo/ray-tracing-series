@@ -26,3 +26,8 @@ add_executable(pi_v1 src/book3/pi_v1.cpp)
 target_compile_features(pi_v1 PRIVATE cxx_std_17)
 target_include_directories(pi_v1 PRIVATE external)
 target_link_libraries(pi_v1 PRIVATE common_lib)
+
+add_executable(pi_v2 src/book3/pi_v2.cpp)
+target_compile_features(pi_v2 PRIVATE cxx_std_17)
+target_include_directories(pi_v2 PRIVATE external)
+target_link_libraries(pi_v2 PRIVATE common_lib)
