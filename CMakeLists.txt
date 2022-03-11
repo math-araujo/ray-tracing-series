@@ -21,6 +21,7 @@ add_executable(firstbooks
 # Create executables for Book 3
 add_executable(pi_v1 src/book3/pi_v1.cpp)
 add_executable(pi_v2 src/book3/pi_v2.cpp)
+add_executable(pi_v3 src/book3/pi_v3.cpp)
 
 # Function to set common properties to executables files, such as compiler version and library dependencies
 function(set_executables_properties executable)
@@ -30,7 +31,7 @@ function(set_executables_properties executable)
 endfunction()
 
 # Call the previous function for each executable
-set(executables firstbooks pi_v1 pi_v2)
+set(executables firstbooks pi_v1 pi_v2 pi_v3)
 foreach(executable ${executables})
     set_executables_properties(${executable})
 endforeach()
