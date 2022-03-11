@@ -20,3 +20,9 @@ add_executable(firstbooks
 target_compile_features(firstbooks PRIVATE cxx_std_17)
 target_include_directories(firstbooks PRIVATE external)
 target_link_libraries(firstbooks PRIVATE common_lib)
+
+# Create executables for Book 3
+add_executable(pi_v1 src/book3/pi_v1.cpp)
+target_compile_features(pi_v1 PRIVATE cxx_std_17)
+target_include_directories(pi_v1 PRIVATE external)
+target_link_libraries(pi_v1 PRIVATE common_lib)
