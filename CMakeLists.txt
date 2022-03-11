@@ -17,17 +17,20 @@ add_executable(firstbooks
     src/first-books/scenes.hpp
     src/first-books/transform.hpp
 )
-target_compile_features(firstbooks PRIVATE cxx_std_17)
-target_include_directories(firstbooks PRIVATE external)
-target_link_libraries(firstbooks PRIVATE common_lib)
 
 # Create executables for Book 3
 add_executable(pi_v1 src/book3/pi_v1.cpp)
-target_compile_features(pi_v1 PRIVATE cxx_std_17)
-target_include_directories(pi_v1 PRIVATE external)
-target_link_libraries(pi_v1 PRIVATE common_lib)
-
 add_executable(pi_v2 src/book3/pi_v2.cpp)
-target_compile_features(pi_v2 PRIVATE cxx_std_17)
-target_include_directories(pi_v2 PRIVATE external)
-target_link_libraries(pi_v2 PRIVATE common_lib)
+
+# Function to set common properties to executables files, such as compiler version and library dependencies
+function(set_executables_properties executable)
+    target_compile_features(${executable} PRIVATE cxx_std_17)
+    target_include_directories(${executable} PRIVATE external)
+    target_link_libraries(${executable} PRIVATE common_lib)
+endfunction()
+
+# Call the previous function for each executable
+set(executables firstbooks pi_v1 pi_v2)
+foreach(executable ${executables})
+    set_executables_properties(${executable})
+endforeach()
